@@ -1,0 +1,112 @@
+<?php
+require "config/db.php";
+require "config/paystack.php";
+
+$id = $_GET['id'] ?? null;
+
+if (!$id) {
+    die("Invalid product ID");
+}
+
+// Get product
+$stmt = $pdo->prepare("SELECT * FROM products WHERE id = :id");
+$stmt->execute([":id" => $id]);
+$product = $stmt->fetch();
+
+if (!$product) {
+    die("Product not found");
+}
+
+// Convert price safely (FIX FOR STRING ERROR)
+$rawPrice = $product["price"];
+$cleanPrice = preg_replace('/[^0-9]/', '', $rawPrice);
+$amount = (int)$cleanPrice * 100; // Paystack uses kobo
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+    $name = trim($_POST["name"]);
+    $email = trim($_POST["email"]);
+    $phone = trim($_POST["phone"]);
+
+    if (!$name || !$email || !$phone) {
+        die("All fields are required");
+    }
+
+    // Generate reference
+    $reference = uniqid("PSK_");
+
+    // Save order first (pending)
+    $stmt = $pdo->prepare("
+        INSERT INTO orders (product_id, customer_name, phone, email, amount, reference, status)
+        VALUES (:product_id, :name, :phone, :email, :amount, :reference, 'pending')
+    ");
+
+    $stmt->execute([
+        ":product_id" => $id,
+        ":name" => $name,
+        ":phone" => $phone,
+        ":email" => $email,
+        ":amount" => $amount,
+        ":reference" => $reference
+    ]);
+
+    // PAYSTACK INIT
+    $url = "https://api.paystack.co/transaction/initialize";
+
+    $fields = [
+        "email" => $email,
+        "amount" => $amount,
+        "reference" => $reference,
+        "callback_url" => "http://127.0.0.1:8000/verify.php"
+    ];
+
+    $ch = curl_init();
+
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        "Authorization: Bearer $paystack_secret",
+        "Content-Type: application/json"
+    ]);
+
+    $result = curl_exec($ch);
+    curl_close($ch);
+
+    $response = json_decode($result, true);
+
+    if (isset($response["status"]) && $response["status"] == true) {
+        header("Location: " . $response["data"]["authorization_url"]);
+        exit;
+    } else {
+        echo "Payment initialization failed";
+        exit;
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order Product</title>
+</head>
+<body>
+
+<h2><?= htmlspecialchars($product["name"]) ?></h2>
+<p><?= htmlspecialchars($product["description"]) ?></p>
+<b><?= htmlspecialchars($product["price"]) ?></b>
+
+<hr>
+
+<h3>Checkout</h3>
+
+<form method="POST">
+    <input type="text" name="name" placeholder="Full Name" required><br><br>
+    <input type="email" name="email" placeholder="Email Address" required><br><br>
+    <input type="text" name="phone" placeholder="Phone Number" required><br><br>
+    <button type="submit">Pay Now</button>
+</form>
+
+</body>
+</html>
