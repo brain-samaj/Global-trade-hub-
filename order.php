@@ -1,6 +1,10 @@
 <?php
+
 require "config/db.php";
-require "config/paystack.php";
+
+// ============================
+// GET PRODUCT
+// ============================
 
 $id = $_GET['id'] ?? null;
 
@@ -8,7 +12,6 @@ if (!$id) {
     die("Invalid product ID");
 }
 
-// Get product
 $stmt = $pdo->prepare("SELECT * FROM products WHERE id = :id");
 $stmt->execute([":id" => $id]);
 $product = $stmt->fetch();
@@ -17,16 +20,31 @@ if (!$product) {
     die("Product not found");
 }
 
-// Convert price safely
+// ============================
+// PRICE PROCESSING
+// ============================
+
 $rawPrice = $product["price"];
 $cleanPrice = preg_replace('/[^0-9]/', '', $rawPrice);
-$amount = (int)$cleanPrice * 100; // Paystack uses kobo
+$amount = (int)$cleanPrice * 100;
 
-$paystack_secret = $paystack_secret ?? getenv("PAYSTACK_SECRET");
+// ============================
+// PAYSTACK SECRET
+// ============================
+
+$paystack_secret = getenv("PAYSTACK_SECRET_KEY");
+
+if (!$paystack_secret) {
+    die("Paystack secret key not set");
+}
+
+// ============================
+// FORM SUBMISSION
+// ============================
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $name = trim($_POST["name"]);
+    $name  = trim($_POST["name"]);
     $email = trim($_POST["email"]);
     $phone = trim($_POST["phone"]);
 
@@ -39,8 +57,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     // Save order (pending)
     $stmt = $pdo->prepare("
-        INSERT INTO orders (product_id, buyer_name, buyer_phone, buyer_email, amount, reference)
-        VALUES (:product_id, :name, :phone, :email, :amount, :reference)
+        INSERT INTO orders (product_id, customer_name, phone, email, amount, reference, status)
+        VALUES (:product_id, :name, :phone, :email, :amount, :reference, 'pending')
     ");
 
     $stmt->execute([
@@ -52,14 +70,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         ":reference" => $reference
     ]);
 
-    // Paystack init
+    // ============================
+    // PAYSTACK INIT
+    // ============================
+
     $url = "https://api.paystack.co/transaction/initialize";
 
     $fields = [
         "email" => $email,
         "amount" => $amount,
         "reference" => $reference,
-        "callback_url" => "https://your-render-app.onrender.com/verify.php"
+        "callback_url" => "https://global-trade-hub-3nbz.onrender.com/order_verify.php"
     ];
 
     $ch = curl_init();
@@ -86,6 +107,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit;
     }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -106,7 +128,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <form method="POST">
     <input type="text" name="name" placeholder="Full Name" required><br><br>
     <input type="email" name="email" placeholder="Email" required><br><br>
-    <input type="text" name="phone" placeholder="Phone Number" required><br><br>
+    <input type="text" name="phone" placeholder="Phone" required><br><br>
     <button type="submit">Pay Now</button>
 </form>
 

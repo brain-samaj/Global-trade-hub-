@@ -1,10 +1,12 @@
 <?php
+
 include "includes/header.php";
 require "config/db.php";
 
-// Fetch products from PostgreSQL
+// Fetch products from PostgreSQL safely
 $stmt = $pdo->query("SELECT * FROM products ORDER BY id DESC");
 $products = $stmt->fetchAll();
+
 ?>
 
 <h2 style="text-align:center;">Our Products</h2>
@@ -15,6 +17,10 @@ $products = $stmt->fetchAll();
     gap:20px;
     padding:20px;
 ">
+
+<?php if (!$products): ?>
+    <p style="text-align:center;">No products available yet.</p>
+<?php endif; ?>
 
 <?php foreach ($products as $p): ?>
 

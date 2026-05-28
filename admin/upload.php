@@ -1,4 +1,5 @@
 <?php
+
 require "../config/db.php";
 require "../config/cloudinary.php";
 require "../includes/auth.php";
@@ -30,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             !isset($_FILES["image"]) ||
             $_FILES["image"]["error"] !== UPLOAD_ERR_OK
         ) {
-            throw new Exception("Image upload failed");
+            throw new Exception("Image upload failed or no file selected");
         }
 
         $fileTmp = $_FILES["image"]["tmp_name"];
@@ -59,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             ":image_url" => $imageUrl
         ]);
 
-        // 5. REDIRECT (PREVENT REPOST BUG)
+        // 5. REDIRECT (PREVENT DOUBLE SUBMIT)
         header("Location: upload.php?success=1");
         exit;
 
