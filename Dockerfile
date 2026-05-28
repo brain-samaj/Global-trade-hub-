@@ -1,13 +1,19 @@
 FROM php:8.2-apache
 
-# Enable PostgreSQL extension
-RUN docker-php-ext-install pdo pdo_pgsql
-
-# Copy project files
-COPY . /var/www/html/
+# Install system dependencies FIRST
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    unzip \
+    git \
+    && docker-php-ext-install pdo pdo_pgsql
 
 # Enable Apache rewrite
 RUN a2enmod rewrite
 
-# Set permissions
+# Copy project files
+COPY . /var/www/html/
+
+# Permissions
 RUN chown -R www-data:www-data /var/www/html
+
+EXPOSE 80
