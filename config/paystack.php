@@ -1,6 +1,8 @@
 <?php
 
-// 🔑 PUT YOUR REAL KEYS HERE FROM PAYSTACK DASHBOARD
+// Paystack keys (loaded from environment variables)
 
-$paystack_secret = "YOUR_SECRET_KEY";
-$paystack_public = "YOUR_PUBLIC_KEY";
+$paystack_secret = getenv("PAYSTACK_SECRET");
+$paystack_public = getenv("PAYSTACK_PUBLIC");
+
+?>

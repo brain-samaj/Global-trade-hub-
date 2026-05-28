@@ -26,7 +26,7 @@ $products = $stmt->fetchAll();
 ">
 
     <!-- PRODUCT IMAGE -->
-    <img src="<?= htmlspecialchars($p['image_url']) ?>" 
+    <img src="<?= htmlspecialchars($p['image_url']) ?>"
          style="width:100%; border-radius:10px; height:200px; object-fit:cover;">
 
     <!-- PRODUCT NAME -->
@@ -36,7 +36,7 @@ $products = $stmt->fetchAll();
     <p><?= htmlspecialchars($p['description']) ?></p>
 
     <!-- PRICE -->
-    <p><b><?= htmlspecialchars($p['price']) ?></b></p>
+    <p><b>$<?= htmlspecialchars($p['price']) ?></b></p>
 
     <!-- ORDER BUTTON -->
     <a href="order.php?id=<?= $p['id'] ?>" style="

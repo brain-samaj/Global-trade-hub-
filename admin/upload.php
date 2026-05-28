@@ -7,55 +7,46 @@ checkAdmin();
 
 $message = "";
 
-// Show success message after redirect
+// Success message
 if (isset($_GET["success"])) {
-    $message = "✅ Product uploaded successfully!";
+    $message = "Product uploaded successfully!";
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     try {
 
-        // -----------------------------
-        // 1. VALIDATE FORM INPUTS
-        // -----------------------------
+        // 1. VALIDATE INPUTS
         if (
             empty($_POST["name"]) ||
             empty($_POST["price"]) ||
             empty($_POST["desc"])
         ) {
-            throw new Exception("All fields are required.");
+            throw new Exception("All fields are required");
         }
 
-        // -----------------------------
-        // 2. VALIDATE IMAGE UPLOAD
-        // -----------------------------
+        // 2. VALIDATE IMAGE
         if (
             !isset($_FILES["image"]) ||
-            $_FILES["image"]["error"] !== UPLOAD_ERR_OK ||
-            !is_uploaded_file($_FILES["image"]["tmp_name"])
+            $_FILES["image"]["error"] !== UPLOAD_ERR_OK
         ) {
-            throw new Exception("Image failed or no file selected.");
+            throw new Exception("Image upload failed");
         }
 
         $fileTmp = $_FILES["image"]["tmp_name"];
 
-        // -----------------------------
         // 3. UPLOAD TO CLOUDINARY
-        // -----------------------------
         $uploadResult = $cloudinary->uploadApi()->upload($fileTmp, [
             "folder" => "global_trade_products"
         ]);
 
         if (!isset($uploadResult["secure_url"])) {
-            throw new Exception("Cloudinary upload failed.");
+            throw new Exception("Cloudinary upload failed");
         }
 
         $imageUrl = $uploadResult["secure_url"];
 
-        // -----------------------------
-        // 4. SAVE TO DATABASE
-        // -----------------------------
+        // 4. INSERT INTO DATABASE
         $stmt = $pdo->prepare("
             INSERT INTO products (name, description, price, image_url)
             VALUES (:name, :description, :price, :image_url)
@@ -68,14 +59,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             ":image_url" => $imageUrl
         ]);
 
-        // -----------------------------
-        // 5. PREVENT RESUBMISSION BUG
-        // -----------------------------
+        // 5. REDIRECT (PREVENT REPOST BUG)
         header("Location: upload.php?success=1");
         exit;
 
     } catch (Exception $e) {
-        $message = "❌ ERROR: " . $e->getMessage();
+        $message = "ERROR: " . $e->getMessage();
     }
 }
 ?>
@@ -90,7 +79,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <h2>Upload Product</h2>
 
 <?php if ($message): ?>
-    <p style="padding:10px;background:#f2f2f2;color:green;">
+    <p style="padding:10px;background:#f2f2f2;color:#000;">
         <?php echo $message; ?>
     </p>
 <?php endif; ?>

@@ -17,10 +17,12 @@ if (!$product) {
     die("Product not found");
 }
 
-// Convert price safely (FIX FOR STRING ERROR)
+// Convert price safely
 $rawPrice = $product["price"];
 $cleanPrice = preg_replace('/[^0-9]/', '', $rawPrice);
 $amount = (int)$cleanPrice * 100; // Paystack uses kobo
+
+$paystack_secret = $paystack_secret ?? getenv("PAYSTACK_SECRET");
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
@@ -35,10 +37,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // Generate reference
     $reference = uniqid("PSK_");
 
-    // Save order first (pending)
+    // Save order (pending)
     $stmt = $pdo->prepare("
-        INSERT INTO orders (product_id, customer_name, phone, email, amount, reference, status)
-        VALUES (:product_id, :name, :phone, :email, :amount, :reference, 'pending')
+        INSERT INTO orders (product_id, buyer_name, buyer_phone, buyer_email, amount, reference)
+        VALUES (:product_id, :name, :phone, :email, :amount, :reference)
     ");
 
     $stmt->execute([
@@ -50,14 +52,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         ":reference" => $reference
     ]);
 
-    // PAYSTACK INIT
+    // Paystack init
     $url = "https://api.paystack.co/transaction/initialize";
 
     $fields = [
         "email" => $email,
         "amount" => $amount,
         "reference" => $reference,
-        "callback_url" => "http://127.0.0.1:8000/verify.php"
+        "callback_url" => "https://your-render-app.onrender.com/verify.php"
     ];
 
     $ch = curl_init();
@@ -67,7 +69,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "Authorization: Bearer $paystack_secret",
+        "Authorization: Bearer " . $paystack_secret,
         "Content-Type: application/json"
     ]);
 
@@ -76,7 +78,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $response = json_decode($result, true);
 
-    if (isset($response["status"]) && $response["status"] == true) {
+    if (isset($response["status"]) && $response["status"] === true) {
         header("Location: " . $response["data"]["authorization_url"]);
         exit;
     } else {
@@ -95,7 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 <h2><?= htmlspecialchars($product["name"]) ?></h2>
 <p><?= htmlspecialchars($product["description"]) ?></p>
-<b><?= htmlspecialchars($product["price"]) ?></b>
+<b>$<?= htmlspecialchars($product["price"]) ?></b>
 
 <hr>
 
@@ -103,7 +105,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 <form method="POST">
     <input type="text" name="name" placeholder="Full Name" required><br><br>
-    <input type="email" name="email" placeholder="Email Address" required><br><br>
+    <input type="email" name="email" placeholder="Email" required><br><br>
     <input type="text" name="phone" placeholder="Phone Number" required><br><br>
     <button type="submit">Pay Now</button>
 </form>
