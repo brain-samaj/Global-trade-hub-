@@ -14,7 +14,7 @@ use Cloudinary\Cloudinary;
 
 $cloud_name = getenv('CLOUDINARY_CLOUD_NAME') ?: 'djngtqjs8';
 $api_key    = getenv('CLOUDINARY_API_KEY') ?: '192215628574648';
-$api_secret = getenv('CLOUDINARY_API_SECRET') ?: '28DaLWm5wjH3EQ5cvYYZscSH';
+$api_secret = getenv('CLOUDINARY_API_SECRET') ?: '28DaLWm5wjH3EQ5cvYYZscSHh5I';
 
 /*
 |--------------------------------------------------------------------------
