@@ -3,7 +3,7 @@
 include "includes/header.php";
 require "config/db.php";
 
-// Fetch products from PostgreSQL safely
+// Fetch products safely
 $stmt = $pdo->query("SELECT * FROM products ORDER BY id DESC");
 $products = $stmt->fetchAll();
 
@@ -31,9 +31,11 @@ $products = $stmt->fetchAll();
     box-shadow:0 0 10px rgba(0,0,0,0.1);
 ">
 
-    <!-- PRODUCT IMAGE -->
-    <img src="<?= htmlspecialchars($p['image_url']) ?>"
-         style="width:100%; border-radius:10px; height:200px; object-fit:cover;">
+    <!-- CLICKABLE PRODUCT IMAGE -->
+    <a href="product.php?id=<?= $p['id'] ?>" style="text-decoration:none;">
+        <img src="<?= htmlspecialchars($p['image_url']) ?>"
+             style="width:100%; border-radius:10px; height:200px; object-fit:cover;">
+    </a>
 
     <!-- PRODUCT NAME -->
     <h3><?= htmlspecialchars($p['name']) ?></h3>
@@ -41,8 +43,11 @@ $products = $stmt->fetchAll();
     <!-- DESCRIPTION -->
     <p><?= htmlspecialchars($p['description']) ?></p>
 
-    <!-- PRICE -->
-    <p><b>$<?= htmlspecialchars($p['price']) ?></b></p>
+    <!-- PRICE (FIXED $$ ISSUE) -->
+    <?php
+        $price = str_replace('$', '', $p['price']);
+    ?>
+    <p><b>$<?= htmlspecialchars($price) ?></b></p>
 
     <!-- ORDER BUTTON -->
     <a href="order.php?id=<?= $p['id'] ?>" style="
