@@ -10,7 +10,7 @@
 
 <header>
     <h1>Global Trade Hub</h1>
-    <p>Connecting African Products to the World</p>
+    <p>your gateway to global market</p>
 
     <nav>
         <a href="index.php">Home</a>
