@@ -84,7 +84,7 @@ $fields = [
     "currency" => "NGN",
 
     // 🔥 IMPORTANT FIX: use LIVE domain, NOT localhost
-    "redirect_url" => "https://YOUR-RENDER-APP.onrender.com/verify.php",
+    "redirect_url" => "https://global-trade-hub-3nbz.onrender.com/verify.php",
 
     "customer" => [
         "email" => $email,
