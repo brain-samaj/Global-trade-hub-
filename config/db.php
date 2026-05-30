@@ -1,23 +1,20 @@
 <?php
 
 /*
-|--------------------------------------------------------------------------
+|------------------------------------------------>
 | DATABASE CONFIGURATION
-|--------------------------------------------------------------------------
-| Localhost + Render Production Ready
-|--------------------------------------------------------------------------
+|------------------------------------------------>
+| Render PostgreSQL (SSL REQUIRED)
+|------------------------------------------------>
 */
 
 /*
-|--------------------------------------------------------------------------
-| ENVIRONMENT VARIABLES
-|--------------------------------------------------------------------------
-| Render will use environment variables automatically.
-| Localhost falls back to your PostgreSQL details below.
-|--------------------------------------------------------------------------
+|------------------------------------------------>
+| ENVIRONMENT VARIABLES (OPTIONAL)
+|------------------------------------------------>
 */
 
-$host = getenv("DB_HOST") ?: "dpg-d8aek6reo5us739k65g0-a";
+$host = getenv("DB_HOST") ?: "dpg-d8aek6reo5us739k65g0-a.oregon-postgres.render.com";
 
 $port = getenv("DB_PORT") ?: "5432";
 
@@ -27,21 +24,19 @@ $user = getenv("DB_USER") ?: "auto";
 
 $password = getenv("DB_PASSWORD") ?: "Q93h1EybyEv2m85WnWOxi6UdEgr1ifyr";
 
-
 /*
-|--------------------------------------------------------------------------
+|------------------------------------------------>
 | PDO CONNECTION
-|--------------------------------------------------------------------------
+|------------------------------------------------>
 */
 
 try {
 
     $pdo = new PDO(
 
-        "pgsql:host=$host;port=$port;dbname=$dbname",
+        "pgsql:host=$host;port=$port;dbname=$dbname;sslmode=require",
 
         $user,
-
         $password,
 
         [

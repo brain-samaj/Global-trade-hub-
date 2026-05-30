@@ -1,5 +1,7 @@
 <?php
 
+ob_start();
+
 require "config/db.php";
 
 // ============================
@@ -26,16 +28,16 @@ if (!$product) {
 
 $rawPrice = $product["price"];
 $cleanPrice = preg_replace('/[^0-9]/', '', $rawPrice);
-$amount = (int)$cleanPrice * 100;
+$amount = (int)$cleanPrice;
 
 // ============================
-// PAYSTACK SECRET
+// FLUTTERWAVE SECRET
 // ============================
 
-$paystack_secret = getenv("PAYSTACK_SECRET_KEY");
+$flutterwave_secret = getenv("FLUTTERWAVE_SECRET_KEY");
 
-if (!$paystack_secret) {
-    die("Paystack secret key not set");
+if (!$flutterwave_secret) {
+    die("Flutterwave secret key not set");
 }
 
 // ============================
@@ -53,17 +55,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 
     // Generate reference
-    $reference = uniqid("PSK_");
+    $reference = uniqid("FLW_");
 
     // Save order (pending)
     $stmt = $pdo->prepare("
-        INSERT INTO orders (product_id, customer_name, phone, email, amount, reference, status)
-        VALUES (:product_id, :name, :phone, :email, :amount, :reference, 'pending')
+        INSERT INTO orders (product_id, customer_name, phone, email, amount, reference)
+        VALUES (:product_id, :customer_name, :phone, :email, :amount, :reference)
     ");
 
     $stmt->execute([
         ":product_id" => $id,
-        ":name" => $name,
+        ":customer_name" => $name,
         ":phone" => $phone,
         ":email" => $email,
         ":amount" => $amount,
@@ -71,16 +73,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     ]);
 
     // ============================
-    // PAYSTACK INIT
+    // FLUTTERWAVE PAYMENT INIT
     // ============================
 
-    $url = "https://api.paystack.co/transaction/initialize";
+    $url = "https://api.flutterwave.com/v3/payments";
 
     $fields = [
-        "email" => $email,
+        "tx_ref" => $reference,
         "amount" => $amount,
-        "reference" => $reference,
-        "callback_url" => "https://global-trade-hub-3nbz.onrender.com/order_verify.php"
+        "currency" => "NGN",
+        "redirect_url" => "http://localhost:8000/verify.php",
+        "customer" => [
+            "email" => $email,
+            "name" => $name,
+            "phonenumber" => $phone
+        ],
+        "customizations" => [
+            "title" => "Global Trade Hub",
+            "description" => $product["name"]
+        ]
     ];
 
     $ch = curl_init();
@@ -90,21 +101,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "Authorization: Bearer " . $paystack_secret,
+        "Authorization: Bearer " . $flutterwave_secret,
         "Content-Type: application/json"
     ]);
 
     $result = curl_exec($ch);
-    curl_close($ch);
+
+    if ($result === false) {
+        die("Curl Error: " . curl_error($ch));
+    }
 
     $response = json_decode($result, true);
 
-    if (isset($response["status"]) && $response["status"] === true) {
-        header("Location: " . $response["data"]["authorization_url"]);
+    // curl_close removed (fixes your warning)
+
+    if (isset($response["status"]) && $response["status"] === "success") {
+        header("Location: " . $response["data"]["link"]);
         exit;
     } else {
-        echo "Payment initialization failed";
-        exit;
+        die("Payment initialization failed");
     }
 }
 
@@ -119,7 +134,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 <h2><?= htmlspecialchars($product["name"]) ?></h2>
 <p><?= htmlspecialchars($product["description"]) ?></p>
-<b>$<?= htmlspecialchars($product["price"]) ?></b>
+
+<b>₦<?= htmlspecialchars($product["price"]) ?></b>
 
 <hr>
 
@@ -129,6 +145,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <input type="text" name="name" placeholder="Full Name" required><br><br>
     <input type="email" name="email" placeholder="Email" required><br><br>
     <input type="text" name="phone" placeholder="Phone" required><br><br>
+
     <button type="submit">Pay Now</button>
 </form>
 
