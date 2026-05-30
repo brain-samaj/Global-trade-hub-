@@ -76,23 +76,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // FLUTTERWAVE PAYMENT INIT
     // ============================
 
-    $url = "https://api.flutterwave.com/v3/payments";
+$url = "https://api.flutterwave.com/v3/payments";
 
-    $fields = [
-        "tx_ref" => $reference,
-        "amount" => $amount,
-        "currency" => "NGN",
-        "redirect_url" => "http://localhost:8000/verify.php",
-        "customer" => [
-            "email" => $email,
-            "name" => $name,
-            "phonenumber" => $phone
-        ],
-        "customizations" => [
-            "title" => "Global Trade Hub",
-            "description" => $product["name"]
-        ]
-    ];
+$fields = [
+    "tx_ref" => $reference,
+    "amount" => $amount,
+    "currency" => "NGN",
+
+    // 🔥 IMPORTANT FIX: use LIVE domain, NOT localhost
+    "redirect_url" => "https://YOUR-RENDER-APP.onrender.com/verify.php",
+
+    "customer" => [
+        "email" => $email,
+        "name" => $name,
+        "phonenumber" => $phone
+    ],
+
+    "customizations" => [
+        "title" => "Global Trade Hub",
+        "description" => $product["name"]
+    ]
+];
 
     $ch = curl_init();
 
