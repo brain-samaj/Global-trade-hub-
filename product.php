@@ -23,16 +23,14 @@ if (!$product) {
 
 <div style="max-width:800px; margin:auto; padding:20px;">
 
-    <!-- CLICKABLE PRODUCT IMAGE -->
-    <a href="image.php?id=<?= $product['id'] ?>">
-        <img src="<?= htmlspecialchars($product['image_url']) ?>"
-             style="
-                width:100%;
-                border-radius:10px;
-                max-height:400px;
-                object-fit:cover;
-             ">
-    </a>
+    <!-- PRODUCT IMAGE -->
+    <img src="<?= htmlspecialchars($product['image_url']) ?>"
+         style="
+            width:100%;
+            border-radius:10px;
+            max-height:400px;
+            object-fit:cover;
+         ">
 
     <!-- PRODUCT NAME -->
     <h2><?= htmlspecialchars($product['name']) ?></h2>
@@ -40,12 +38,8 @@ if (!$product) {
     <!-- PRODUCT DESCRIPTION -->
     <p><?= htmlspecialchars($product['description']) ?></p>
 
-    <!-- PRODUCT PRICE -->
-    <?php
-        $price = str_replace('$', '', $product['price']);
-    ?>
-
-    <h3>$<?= htmlspecialchars($price) ?></h3>
+    <!-- PRODUCT PRICE (₦ FIXED) -->
+    <h3>₦<?= number_format((int)$product['price']) ?></h3>
 
     <!-- ORDER BUTTON -->
     <a href="order.php?id=<?= $product['id'] ?>"

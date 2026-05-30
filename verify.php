@@ -1,7 +1,6 @@
 <?php
 
 require "config/db.php";
-
 $flutterwave_secret = getenv("FLUTTERWAVE_SECRET_KEY");
 
 if (!$flutterwave_secret) {
@@ -14,7 +13,7 @@ if (!isset($_GET['transaction_id'])) {
 
 $transaction_id = $_GET['transaction_id'];
 
-// Verify transaction with Flutterwave
+// VERIFY WITH FLUTTERWAVE
 $url = "https://api.flutterwave.com/v3/transactions/" . $transaction_id . "/verify";
 
 $ch = curl_init();
@@ -29,69 +28,41 @@ curl_setopt_array($ch, [
 ]);
 
 $result = curl_exec($ch);
-
-if (curl_errno($ch)) {
-    die("Curl Error: " . curl_error($ch));
-}
-
 curl_close($ch);
 
 $response = json_decode($result, true);
 
+// 🔒 STRICT VALIDATION
 if (
     isset($response["status"]) &&
     $response["status"] === "success" &&
-    isset($response["data"]["status"]) &&
     $response["data"]["status"] === "successful"
 ) {
 
-    $reference = $response["data"]["tx_ref"] ?? null;
+    $tx_ref = $response["data"]["tx_ref"];
 
-    if ($reference) {
+    // CHECK ORDER EXISTS
+    $stmt = $pdo->prepare("SELECT * FROM orders WHERE reference = :ref");
+    $stmt->execute([":ref" => $tx_ref]);
+    $order = $stmt->fetch();
 
-        $stmt = $pdo->prepare("
-            UPDATE orders
-            SET status = 'paid'
-            WHERE reference = :reference
-        ");
-
-        $stmt->execute([
-            ":reference" => $reference
-        ]);
+    if (!$order) {
+        die("Order not found");
     }
 
-    ?>
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Payment Successful</title>
-    </head>
-    <body>
-        <h1>Payment Successful ✅</h1>
-        <p>Thank you for your payment.</p>
-        <p>Transaction ID: <?php echo htmlspecialchars($transaction_id); ?></p>
-        <p>Reference: <?php echo htmlspecialchars($reference ?? "N/A"); ?></p>
+    // MARK AS PAID ONLY ONCE
+    $stmt = $pdo->prepare("
+        UPDATE orders
+        SET status = 'paid'
+        WHERE reference = :ref
+    ");
 
-        <a href="index.php">Return Home</a>
-    </body>
-    </html>
-    <?php
+    $stmt->execute([":ref" => $tx_ref]);
+
+    // REDIRECT TO RECEIPT
+    header("Location: receipt.php?reference=" . $tx_ref);
+    exit;
 
 } else {
-
-    ?>
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Payment Failed</title>
-    </head>
-    <body>
-        <h1>Payment Failed ❌</h1>
-        <p>Your payment could not be verified.</p>
-
-        <a href="index.php">Return Home</a>
-    </body>
-    </html>
-    <?php
+    die("Payment verification failed");
 }
-?>

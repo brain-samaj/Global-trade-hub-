@@ -31,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             !isset($_FILES["image"]) ||
             $_FILES["image"]["error"] !== UPLOAD_ERR_OK
         ) {
-            throw new Exception("Image upload failed or no file selected");
+            throw new Exception("Image upload failed");
         }
 
         $fileTmp = $_FILES["image"]["tmp_name"];
@@ -47,7 +47,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $imageUrl = $uploadResult["secure_url"];
 
-        // 4. INSERT INTO DATABASE
+        // 4. CLEAN PRICE (IMPORTANT FIX FOR ₦ SYSTEM)
+        $price = (int) preg_replace('/[^0-9]/', '', $_POST["price"]);
+
+        // 5. INSERT INTO DATABASE
         $stmt = $pdo->prepare("
             INSERT INTO products (name, description, price, image_url)
             VALUES (:name, :description, :price, :image_url)
@@ -56,11 +59,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt->execute([
             ":name" => trim($_POST["name"]),
             ":description" => trim($_POST["desc"]),
-            ":price" => trim($_POST["price"]),
+            ":price" => $price,
             ":image_url" => $imageUrl
         ]);
 
-        // 5. REDIRECT (PREVENT DOUBLE SUBMIT)
+        // 6. REDIRECT (PREVENT DOUBLE SUBMIT)
         header("Location: upload.php?success=1");
         exit;
 
@@ -80,7 +83,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <h2>Upload Product</h2>
 
 <?php if ($message): ?>
-    <p style="padding:10px;background:#f2f2f2;color:#000;">
+    <p style="padding:10px;background:#f2f2f2;color:#333;">
         <?php echo $message; ?>
     </p>
 <?php endif; ?>
@@ -89,7 +92,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     <input type="text" name="name" placeholder="Product Name" required><br><br>
 
-    <input type="text" name="price" placeholder="Price" required><br><br>
+    <input type="text" name="price" placeholder="Price (e.g 5000)" required><br><br>
 
     <textarea name="desc" placeholder="Description" required></textarea><br><br>
 

@@ -19,7 +19,7 @@ $products = $stmt->fetchAll();
 ">
 
 <?php if (!$products): ?>
-    <p style="text-align:center;">No products available yet.</p>
+    <p style="text-align:center;">No products available</p>
 <?php endif; ?>
 
 <?php foreach ($products as $p): ?>
@@ -34,7 +34,7 @@ $products = $stmt->fetchAll();
     <!-- CLICKABLE PRODUCT IMAGE -->
     <a href="product.php?id=<?= $p['id'] ?>" style="text-decoration:none;">
         <img src="<?= htmlspecialchars($p['image_url']) ?>"
-             style="width:100%; border-radius:10px; height:200px; object-fit:cover;">
+             style="width:100%; border-radius:10px;">
     </a>
 
     <!-- PRODUCT NAME -->
@@ -43,11 +43,8 @@ $products = $stmt->fetchAll();
     <!-- DESCRIPTION -->
     <p><?= htmlspecialchars($p['description']) ?></p>
 
-    <!-- PRICE (FIXED $$ ISSUE) -->
-    <?php
-        $price = str_replace('$', '', $p['price']);
-    ?>
-    <p><b>$<?= htmlspecialchars($price) ?></b></p>
+    <!-- PRICE (₦ ONLY - FIXED) -->
+    <p><b>₦<?= number_format((int)$p['price']) ?></b></p>
 
     <!-- ORDER BUTTON -->
     <a href="order.php?id=<?= $p['id'] ?>" style="

@@ -2,54 +2,31 @@
 
 /*
 |------------------------------------------------>
-| DATABASE CONFIGURATION
-|------------------------------------------------>
-| Render PostgreSQL (SSL REQUIRED)
+| DATABASE CONFIGURATION (Render PostgreSQL)
 |------------------------------------------------>
 */
 
-/*
-|------------------------------------------------>
-| ENVIRONMENT VARIABLES (OPTIONAL)
-|------------------------------------------------>
-*/
-
-$host = getenv("DB_HOST") ?: "dpg-d8aek6reo5us739k65g0-a.oregon-postgres.render.com";
-
+$host = getenv("DB_HOST");
 $port = getenv("DB_PORT") ?: "5432";
-
-$dbname = getenv("DB_NAME") ?: "letunite";
-
-$user = getenv("DB_USER") ?: "auto";
-
-$password = getenv("DB_PASSWORD") ?: "Q93h1EybyEv2m85WnWOxi6UdEgr1ifyr";
-
-/*
-|------------------------------------------------>
-| PDO CONNECTION
-|------------------------------------------------>
-*/
+$dbname = getenv("DB_NAME");
+$user = getenv("DB_USER");
+$password = getenv("DB_PASSWORD");
 
 try {
 
     $pdo = new PDO(
-
-        "pgsql:host=$host;port=$port;dbname=$dbname;sslmode=require",
-
+        "pgsql:host=$host;port=$port;dbname=$dbname",
         $user,
         $password,
-
         [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-
             PDO::ATTR_EMULATE_PREPARES => false
         ]
     );
 
 } catch (PDOException $e) {
-
     die("DATABASE CONNECTION FAILED: " . $e->getMessage());
 }
+
 ?>
