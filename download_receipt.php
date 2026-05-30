@@ -36,17 +36,6 @@ if (!$order) {
 $date = date("Y-m-d", strtotime($order["created_at"] ?? "now"));
 $time = date("H:i:s", strtotime($order["created_at"] ?? "now"));
 
-// 🔐 QR CODE
-$verifyUrl = "https://your-domain.com/verify_receipt.php?reference=" . $order['reference'];
-
-$result = Builder::create()
-    ->writer(new PngWriter())
-    ->data($verifyUrl)
-    ->size(180)
-    ->margin(10)
-    ->build();
-
-$qr = $result->getDataUri();
 
 $html = '
 <style>

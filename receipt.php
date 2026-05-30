@@ -4,7 +4,7 @@ require "config/db.php";
 require "vendor/autoload.php";
 
 use Endroid\QrCode\Builder\Builder;
-use Endroid\QrCode\Writer\PngWriter;
+use Endroid\QrCode\Writer\SvgWriter;
 
 $reference = $_GET['reference'] ?? null;
 
@@ -32,17 +32,18 @@ if (!$order) {
 $date = date("Y-m-d", strtotime($order["created_at"] ?? "now"));
 $time = date("H:i:s", strtotime($order["created_at"] ?? "now"));
 
-// 🔐 QR VERIFY LINK
-$verifyUrl = "https://your-domain.com/verify_receipt.php?reference=" . $order['reference'];
+// 🔐 VERIFY LINK
+$verifyUrl = "https://global-trade-hub-3nbz.onrender.com/verify_receipt.php?reference=" . $order['reference'];
 
+// ✅ QR (SVG - NO GD REQUIRED)
 $result = Builder::create()
-    ->writer(new PngWriter())
+    ->writer(new SvgWriter())
     ->data($verifyUrl)
     ->size(220)
     ->margin(10)
     ->build();
 
-$qrDataUri = $result->getDataUri();
+$qrSvg = $result->getString();
 
 ?>
 
@@ -57,38 +58,7 @@ body {
     background: #f5f5f5;
 }
 
-/* 🧠 LOGO WATERMARK */
-.wm-logo {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    width: 380px;
-    transform: translate(-50%, -50%);
-    opacity: 0.05;
-    z-index: 0;
-    pointer-events: none;
-}
-
-/* 🔁 DIAGONAL PATTERN */
-.wm-text {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 200%;
-    height: 200%;
-    font-size: 20px;
-    color: rgba(0,0,0,0.04);
-    transform: rotate(-30deg);
-    white-space: nowrap;
-    line-height: 120px;
-    z-index: 0;
-    pointer-events: none;
-}
-
-/* 📄 CONTENT */
-.receipt-box {
-    position: relative;
-    z-index: 2;
+.receipt {
     max-width: 650px;
     margin: 40px auto;
     background: white;
@@ -100,37 +70,30 @@ body {
 .status {
     color: green;
     font-weight: bold;
-    text-align: center;
 }
 
-.qr {
-    text-align: center;
-    margin-top: 20px;
-}
-
-.download {
-    display: inline-block;
-    padding: 10px 15px;
-    background: green;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
+.watermark {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    font-size: 40px;
+    opacity: 0.05;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    pointer-events: none;
 }
 </style>
 </head>
 
 <body>
 
-<!-- WATERMARKS -->
-<img src="assets/brain-logo.png" class="wm-logo">
-
-<div class="wm-text">
-GLOBAL TRADE HUB • VERIFIED • <?= $reference ?> • <?= htmlspecialchars($order['customer_name']) ?> •
+<div class="watermark">
+GLOBAL TRADE HUB • VERIFIED
 </div>
 
-<div class="receipt-box">
+<div class="receipt">
 
-<h2 style="text-align:center;">🧾 Payment Receipt</h2>
+<h2>🧾 Payment Receipt</h2>
 
 <p class="status">PAID ✔</p>
 
@@ -150,16 +113,20 @@ GLOBAL TRADE HUB • VERIFIED • <?= $reference ?> • <?= htmlspecialchars($or
 <p><b>Date:</b> <?= $date ?></p>
 <p><b>Time:</b> <?= $time ?></p>
 
-<div class="qr">
-    <p><b>Scan to verify</b></p>
-    <img src="<?= $qrDataUri ?>" width="180">
+<hr>
+
+<h4>Scan to Verify</h4>
+
+<!-- ✅ QR CODE (SVG OUTPUT) -->
+<div>
+    <?= $qrSvg ?>
 </div>
 
-<div style="text-align:center;margin-top:20px;">
-    <a class="download" href="download_receipt.php?reference=<?= $order['reference'] ?>">
-        Download PDF Receipt
-    </a>
-</div>
+<br>
+
+<a href="download_receipt.php?reference=<?= $order['reference'] ?>">
+    Download PDF Receipt
+</a>
 
 </div>
 
