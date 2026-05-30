@@ -1,22 +1,31 @@
 <?php
-require "config/db.php";
-require "config/paystack.php";
 
-if (!isset($_GET['reference'])) {
-    die("No reference supplied");
+require "config/db.php";
+
+$flutterwave_secret = getenv("FLUTTERWAVE_SECRET_KEY");
+
+if (!$flutterwave_secret) {
+    die("Flutterwave secret key not set");
 }
 
-$reference = $_GET['reference'];
+if (!isset($_GET['transaction_id'])) {
+    die("No transaction ID supplied");
+}
 
-// Paystack verify URL (IMPORTANT FIX)
-$url = "https://api.paystack.co/transaction/verify/" . urlencode($reference);
+$transaction_id = $_GET['transaction_id'];
+
+// Verify transaction with Flutterwave
+$url = "https://api.flutterwave.com/v3/transactions/" . $transaction_id . "/verify";
 
 $ch = curl_init();
 
-curl_setopt($ch, CURLOPT_URL, $url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    "Authorization: Bearer " . $paystack_secret
+curl_setopt_array($ch, [
+    CURLOPT_URL => $url,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => [
+        "Authorization: Bearer " . $flutterwave_secret,
+        "Content-Type: application/json"
+    ]
 ]);
 
 $result = curl_exec($ch);
@@ -29,26 +38,60 @@ curl_close($ch);
 
 $response = json_decode($result, true);
 
-// Safe validation
 if (
     isset($response["status"]) &&
-    $response["status"] === true &&
+    $response["status"] === "success" &&
     isset($response["data"]["status"]) &&
-    $response["data"]["status"] === "success"
+    $response["data"]["status"] === "successful"
 ) {
 
-    // Update order to paid
-    $stmt = $pdo->prepare("
-        UPDATE orders
-        SET status = 'paid'
-        WHERE reference = :ref
-    ");
+    $reference = $response["data"]["tx_ref"] ?? null;
 
-    $stmt->execute([":ref" => $reference]);
+    if ($reference) {
 
-    echo "Payment successful! Order confirmed.";
+        $stmt = $pdo->prepare("
+            UPDATE orders
+            SET status = 'paid'
+            WHERE reference = :reference
+        ");
+
+        $stmt->execute([
+            ":reference" => $reference
+        ]);
+    }
+
+    ?>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Payment Successful</title>
+    </head>
+    <body>
+        <h1>Payment Successful ✅</h1>
+        <p>Thank you for your payment.</p>
+        <p>Transaction ID: <?php echo htmlspecialchars($transaction_id); ?></p>
+        <p>Reference: <?php echo htmlspecialchars($reference ?? "N/A"); ?></p>
+
+        <a href="index.php">Return Home</a>
+    </body>
+    </html>
+    <?php
 
 } else {
-    echo "Payment failed or pending.";
+
+    ?>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Payment Failed</title>
+    </head>
+    <body>
+        <h1>Payment Failed ❌</h1>
+        <p>Your payment could not be verified.</p>
+
+        <a href="index.php">Return Home</a>
+    </body>
+    </html>
+    <?php
 }
 ?>
