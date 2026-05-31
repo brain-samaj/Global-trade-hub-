@@ -2,18 +2,34 @@
 
 require "config/db.php";
 
+/*
+|--------------------------------------------------------------------------
+| SECURITY KEY
+|--------------------------------------------------------------------------
+*/
+
 $secret = getenv("APP_SECRET");
+
+if (!$secret) {
+    die("Server misconfiguration");
+}
+
+/*
+|--------------------------------------------------------------------------
+| GET PARAMETERS
+|--------------------------------------------------------------------------
+*/
 
 $reference = $_GET['reference'] ?? null;
 $sig = $_GET['sig'] ?? null;
 
 if (!$reference || !$sig) {
-    die("Invalid verification request");
+    die("❌ Invalid verification request");
 }
 
 /*
 |--------------------------------------------------------------------------
-| VERIFY SIGNATURE (ANTI-TAMPER LAYER)
+| VERIFY SIGNATURE (ANTI-TAMPER CORE)
 |--------------------------------------------------------------------------
 */
 
@@ -25,7 +41,7 @@ if (!hash_equals($expectedSig, $sig)) {
 
 /*
 |--------------------------------------------------------------------------
-| FETCH ONLY PAID TRANSACTIONS
+| FETCH TRANSACTION
 |--------------------------------------------------------------------------
 */
 
@@ -116,7 +132,7 @@ $order = $stmt->fetch();
 
     <div class="invalid">❌ INVALID OR UNVERIFIED</div>
 
-    <p>This receipt cannot be verified. It may be fake or tampered with.</p>
+    <p>This receipt is not valid, has been tampered with, or does not exist.</p>
 
 <?php endif; ?>
 

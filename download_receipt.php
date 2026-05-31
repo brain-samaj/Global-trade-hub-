@@ -9,7 +9,7 @@ require "config/db.php";
 
 use Dompdf\Dompdf;
 use Endroid\QrCode\Builder\Builder;
-use Endroid\QrCode\Writer\PngWriter;
+use Endroid\QrCode\Writer\SvgWriter;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,7 +25,7 @@ if (!$reference) {
 
 /*
 |--------------------------------------------------------------------------
-| FETCH ONLY PAID ORDER
+| FETCH PAID ORDER ONLY
 |--------------------------------------------------------------------------
 */
 
@@ -46,7 +46,7 @@ if (!$order) {
 
 /*
 |--------------------------------------------------------------------------
-| DATE / TIME FIX
+| DATE / TIME
 |--------------------------------------------------------------------------
 */
 
@@ -55,17 +55,21 @@ $time = date("H:i:s", strtotime($order["created_at"]));
 
 /*
 |--------------------------------------------------------------------------
-| SECURITY SIGNATURE (IMPORTANT)
+| SECURITY (HMAC SIGNATURE)
 |--------------------------------------------------------------------------
 */
 
 $secret = getenv("APP_SECRET");
 
+if (!$secret) {
+    die("APP_SECRET not set in environment");
+}
+
 $sig = hash_hmac('sha256', $order["reference"], $secret);
 
 /*
 |--------------------------------------------------------------------------
-| VERIFY LINK (SECURE)
+| VERIFY LINK (FRAUD PROOF)
 |--------------------------------------------------------------------------
 */
 
@@ -76,18 +80,18 @@ $verifyLink =
 
 /*
 |--------------------------------------------------------------------------
-| QR CODE GENERATION
+| QR CODE (SVG - NO GD REQUIRED)
 |--------------------------------------------------------------------------
 */
 
 $result = Builder::create()
-    ->writer(new PngWriter())
+    ->writer(new SvgWriter())
     ->data($verifyLink)
     ->size(180)
     ->margin(10)
     ->build();
 
-$qr = $result->getDataUri();
+$qr = $result->getString();
 
 /*
 |--------------------------------------------------------------------------
@@ -127,6 +131,11 @@ hr{
     margin:15px 0;
 }
 
+.qr-box{
+    text-align:center;
+    margin-top:20px;
+}
+
 </style>
 
 </head>
@@ -158,14 +167,13 @@ GLOBAL TRADE HUB • VERIFIED TRANSACTION
 <hr>
 
 <p><strong>Date:</strong> ' . $date . '</p>
-
 <p><strong>Time:</strong> ' . $time . '</p>
 
 <hr>
 
-<div style="text-align:center;margin-top:20px;">
+<div class="qr-box">
     <p><strong>Scan to verify receipt</strong></p>
-    <img src="' . $qr . '" width="140">
+    ' . $qr . '
 </div>
 
 <div class="footer">
@@ -183,11 +191,51 @@ Verified Payment Receipt
 |--------------------------------------------------------------------------
 */
 
-$dompdf = new Dompdf();
+use Dompdf\Options;
+use Dompdf\Dompdf;
+
+/*
+|--------------------------------------------------------------------------
+| DOMPDF CONFIG (FIX ₦ + CHECKMARK ISSUES)
+|--------------------------------------------------------------------------
+*/
+
+$options = new Options();
+$options->set('defaultFont', 'DejaVu Sans');
+$options->set('isHtml5ParserEnabled', true);
+$options->set('isRemoteEnabled', true);
+
+$dompdf = new Dompdf($options);
+
+/*
+|--------------------------------------------------------------------------
+| LOAD HTML
+|--------------------------------------------------------------------------
+*/
 
 $dompdf->loadHtml($html);
+
+/*
+|--------------------------------------------------------------------------
+| PAPER SETTINGS
+|--------------------------------------------------------------------------
+*/
+
 $dompdf->setPaper("A4", "portrait");
+
+/*
+|--------------------------------------------------------------------------
+| RENDER PDF
+|--------------------------------------------------------------------------
+*/
+
 $dompdf->render();
+
+/*
+|--------------------------------------------------------------------------
+| OUTPUT
+|--------------------------------------------------------------------------
+*/
 
 $dompdf->stream(
     "receipt_" . $reference . ".pdf",
@@ -195,3 +243,4 @@ $dompdf->stream(
 );
 
 exit;
+
