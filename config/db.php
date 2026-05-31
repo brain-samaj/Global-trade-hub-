@@ -1,29 +1,19 @@
 <?php
 
-require __DIR__ . "/../vendor/autoload.php";
-
-use Dotenv\Dotenv;
-
 /*
 |--------------------------------------------------------------------------
-| LOAD ENV FILE
+| RENDER POSTGRESQL CONNECTION (PRODUCTION SAFE)
 |--------------------------------------------------------------------------
+| Uses Render Environment Variables ONLY
+| No .env file needed
+| Works on live deployment
 */
 
-$dotenv = Dotenv::createImmutable(__DIR__ . "/..");
-$dotenv->load();
-
-/*
-|--------------------------------------------------------------------------
-| GET ENV VARIABLES (SAFE)
-|--------------------------------------------------------------------------
-*/
-
-$host = $_ENV["DB_HOST"] ?? null;
-$port = $_ENV["DB_PORT"] ?? "5432";
-$dbname = $_ENV["DB_NAME"] ?? null;
-$user = $_ENV["DB_USER"] ?? null;
-$password = $_ENV["DB_PASSWORD"] ?? null;
+$host = getenv("DB_HOST");
+$port = getenv("DB_PORT") ?: "5432";
+$dbname = getenv("DB_NAME");
+$user = getenv("DB_USER");
+$password = getenv("DB_PASSWORD");
 
 /*
 |--------------------------------------------------------------------------
@@ -34,16 +24,16 @@ $password = $_ENV["DB_PASSWORD"] ?? null;
 if (!$host || !$dbname || !$user || !$password) {
     die("
 ❌ ENV ERROR: Missing database credentials<br>
-HOST: $host<br>
-DB: $dbname<br>
-USER: $user<br>
-PASSWORD: " . ($password ? "SET" : "MISSING")
-    );
+HOST: " . ($host ?? 'MISSING') . "<br>
+DB: " . ($dbname ?? 'MISSING') . "<br>
+USER: " . ($user ?? 'MISSING') . "<br>
+PASSWORD: " . ($password ? 'SET' : 'MISSING') . "
+    ");
 }
 
 /*
 |--------------------------------------------------------------------------
-| POSTGRESQL CONNECTION (RENDER SAFE + SSL REQUIRED)
+| DATABASE CONNECTION
 |--------------------------------------------------------------------------
 */
 
@@ -58,7 +48,9 @@ try {
     ]);
 
 } catch (PDOException $e) {
+
     die("❌ DATABASE CONNECTION FAILED: " . $e->getMessage());
+
 }
 
-?>	
+?>
