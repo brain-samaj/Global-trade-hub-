@@ -8,6 +8,7 @@ require "vendor/autoload.php";
 require "config/db.php";
 
 use Dompdf\Dompdf;
+use Dompdf\Options;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Writer\SvgWriter;
 
@@ -69,7 +70,7 @@ $sig = hash_hmac('sha256', $order["reference"], $secret);
 
 /*
 |--------------------------------------------------------------------------
-| VERIFY LINK (FRAUD PROOF)
+| VERIFY LINK
 |--------------------------------------------------------------------------
 */
 
@@ -150,7 +151,7 @@ GLOBAL TRADE HUB • VERIFIED TRANSACTION
 
 <hr>
 
-<p><strong>Status:</strong> PAID ✔</p>
+<p><strong>Status:</strong> PAID &#10004;</p>
 
 <p><strong>Product:</strong> ' . htmlspecialchars($order["product_name"]) . '</p>
 
@@ -160,7 +161,7 @@ GLOBAL TRADE HUB • VERIFIED TRANSACTION
 
 <hr>
 
-<p><strong>Amount Paid:</strong> ₦' . number_format($order["amount"]) . '</p>
+<p><strong>Amount Paid:</strong> &#8358;' . number_format($order["amount"]) . '</p>
 
 <p><strong>Reference:</strong> ' . htmlspecialchars($order["reference"]) . '</p>
 
@@ -191,15 +192,6 @@ Verified Payment Receipt
 |--------------------------------------------------------------------------
 */
 
-use Dompdf\Options;
-use Dompdf\Dompdf;
-
-/*
-|--------------------------------------------------------------------------
-| DOMPDF CONFIG (FIX ₦ + CHECKMARK ISSUES)
-|--------------------------------------------------------------------------
-*/
-
 $options = new Options();
 $options->set('defaultFont', 'DejaVu Sans');
 $options->set('isHtml5ParserEnabled', true);
@@ -207,35 +199,9 @@ $options->set('isRemoteEnabled', true);
 
 $dompdf = new Dompdf($options);
 
-/*
-|--------------------------------------------------------------------------
-| LOAD HTML
-|--------------------------------------------------------------------------
-*/
-
 $dompdf->loadHtml($html);
-
-/*
-|--------------------------------------------------------------------------
-| PAPER SETTINGS
-|--------------------------------------------------------------------------
-*/
-
 $dompdf->setPaper("A4", "portrait");
-
-/*
-|--------------------------------------------------------------------------
-| RENDER PDF
-|--------------------------------------------------------------------------
-*/
-
 $dompdf->render();
-
-/*
-|--------------------------------------------------------------------------
-| OUTPUT
-|--------------------------------------------------------------------------
-*/
 
 $dompdf->stream(
     "receipt_" . $reference . ".pdf",
@@ -243,4 +209,3 @@ $dompdf->stream(
 );
 
 exit;
-
