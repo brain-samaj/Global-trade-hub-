@@ -1,6 +1,7 @@
 <?php
 
 require "config/db.php";
+
 $flutterwave_secret = getenv("FLUTTERWAVE_SECRET_KEY");
 
 if (!$flutterwave_secret) {
@@ -13,7 +14,7 @@ if (!isset($_GET['transaction_id'])) {
 
 $transaction_id = $_GET['transaction_id'];
 
-// VERIFY WITH FLUTTERWAVE
+// VERIFY TRANSACTION WITH FLUTTERWAVE
 $url = "https://api.flutterwave.com/v3/transactions/" . $transaction_id . "/verify";
 
 $ch = curl_init();
@@ -28,41 +29,91 @@ curl_setopt_array($ch, [
 ]);
 
 $result = curl_exec($ch);
+
+if (curl_errno($ch)) {
+    die("Verification failed: " . curl_error($ch));
+}
+
 curl_close($ch);
 
 $response = json_decode($result, true);
 
-// 🔒 STRICT VALIDATION
 if (
-    isset($response["status"]) &&
-    $response["status"] === "success" &&
-    $response["data"]["status"] === "successful"
+    !isset($response["status"]) ||
+    $response["status"] !== "success" ||
+    !isset($response["data"])
 ) {
+    die("Invalid verification response");
+}
 
-    $tx_ref = $response["data"]["tx_ref"];
+$data = $response["data"];
 
-    // CHECK ORDER EXISTS
-    $stmt = $pdo->prepare("SELECT * FROM orders WHERE reference = :ref");
-    $stmt->execute([":ref" => $tx_ref]);
-    $order = $stmt->fetch();
+if (
+    !isset($data["status"]) ||
+    $data["status"] !== "successful"
+) {
+    die("Payment was not successful");
+}
 
-    if (!$order) {
-        die("Order not found");
-    }
+$tx_ref = $data["tx_ref"] ?? null;
 
-    // MARK AS PAID ONLY ONCE
+if (!$tx_ref) {
+    die("Missing transaction reference");
+}
+
+// FIND ORDER
+$stmt = $pdo->prepare("
+    SELECT *
+    FROM orders
+    WHERE reference = :ref
+    LIMIT 1
+");
+
+$stmt->execute([
+    ":ref" => $tx_ref
+]);
+
+$order = $stmt->fetch();
+
+if (!$order) {
+    die("Order not found");
+}
+
+// EXTRA SECURITY CHECKS
+
+$paidAmount = (float)($data["amount"] ?? 0);
+$orderAmount = (float)$order["amount"];
+
+if ($paidAmount < $orderAmount) {
+    die("Amount mismatch");
+}
+
+if (
+    isset($data["currency"]) &&
+    $data["currency"] !== "NGN"
+) {
+    die("Invalid currency");
+}
+
+// ALREADY PAID?
+if ($order["status"] !== "paid") {
+
     $stmt = $pdo->prepare("
         UPDATE orders
         SET status = 'paid'
         WHERE reference = :ref
     ");
 
-    $stmt->execute([":ref" => $tx_ref]);
-
-    // REDIRECT TO RECEIPT
-    header("Location: receipt.php?reference=" . $tx_ref);
-    exit;
-
-} else {
-    die("Payment verification failed");
+    $stmt->execute([
+        ":ref" => $tx_ref
+    ]);
 }
+
+// REDIRECT TO RECEIPT
+header(
+    "Location: receipt.php?reference=" .
+    urlencode($tx_ref)
+);
+
+exit;
+?>
