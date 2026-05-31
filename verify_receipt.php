@@ -2,13 +2,33 @@
 
 require "config/db.php";
 
-$reference = $_GET['reference'] ?? null;
+$secret = getenv("APP_SECRET");
 
-if (!$reference) {
+$reference = $_GET['reference'] ?? null;
+$sig = $_GET['sig'] ?? null;
+
+if (!$reference || !$sig) {
     die("Invalid verification request");
 }
 
-// 🔒 FETCH ONLY PAID TRANSACTIONS
+/*
+|--------------------------------------------------------------------------
+| VERIFY SIGNATURE (ANTI-TAMPER LAYER)
+|--------------------------------------------------------------------------
+*/
+
+$expectedSig = hash_hmac('sha256', $reference, $secret);
+
+if (!hash_equals($expectedSig, $sig)) {
+    die("❌ INVALID OR TAMPERED RECEIPT LINK");
+}
+
+/*
+|--------------------------------------------------------------------------
+| FETCH ONLY PAID TRANSACTIONS
+|--------------------------------------------------------------------------
+*/
+
 $stmt = $pdo->prepare("
     SELECT o.*, p.name AS product_name
     FROM orders o
@@ -82,7 +102,6 @@ $order = $stmt->fetch();
 <?php if ($order): ?>
 
     <div class="valid">✔ VERIFIED TRANSACTION</div>
-
     <div class="badge">PAID ✔</div>
 
     <div class="info">
@@ -95,9 +114,9 @@ $order = $stmt->fetch();
 
 <?php else: ?>
 
-    <div class="invalid">❌ INVALID OR UNVERIFIED TRANSACTION</div>
+    <div class="invalid">❌ INVALID OR UNVERIFIED</div>
 
-    <p>This receipt cannot be verified. It may be fake or unpaid.</p>
+    <p>This receipt cannot be verified. It may be fake or tampered with.</p>
 
 <?php endif; ?>
 

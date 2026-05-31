@@ -14,7 +14,7 @@ checkAdmin();
 $summary = $pdo->query("
     SELECT
         COUNT(*) AS total_orders,
-        COALESCE(SUM(amount), 0) AS total_revenue
+        COALESCE(SUM(amount::NUMERIC), 0) AS total_revenue
     FROM orders
     WHERE status = 'paid'
 ")->fetch();
@@ -29,7 +29,7 @@ $stmt = $pdo->query("
     SELECT
         p.*,
         COUNT(o.id) AS total_sales,
-        COALESCE(SUM(o.amount), 0) AS total_revenue
+        COALESCE(SUM(o.amount::NUMERIC), 0) AS total_revenue
     FROM products p
     LEFT JOIN orders o
         ON p.id = o.product_id
@@ -46,9 +46,7 @@ $products = $stmt->fetchAll();
 <html>
 <head>
     <title>Admin Dashboard</title>
-
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
 </head>
 
 <body style="
@@ -115,7 +113,7 @@ $products = $stmt->fetchAll();
 
 <div style="
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
     gap:20px;
 ">
 
@@ -129,7 +127,6 @@ $products = $stmt->fetchAll();
 ">
 
     <!-- PRODUCT IMAGE -->
-
     <img
         src="<?= htmlspecialchars($p['image_url']) ?>"
         style="
@@ -141,27 +138,21 @@ $products = $stmt->fetchAll();
     >
 
     <!-- PRODUCT NAME -->
-
     <h3><?= htmlspecialchars($p['name']) ?></h3>
 
     <!-- PRODUCT DESCRIPTION -->
-
     <p><?= htmlspecialchars($p['description']) ?></p>
 
     <!-- PRODUCT PRICE -->
-
     <?php
         $price = preg_replace('/[^0-9]/', '', $p['price']);
     ?>
 
-    <h3>
-        ₦<?= number_format((int)$price) ?>
-    </h3>
+    <h3>₦<?= number_format((int)$price) ?></h3>
 
     <hr>
 
     <!-- SALES STATS -->
-
     <p>
         <strong>Units Sold:</strong>
         <?= (int)$p['total_sales'] ?>
@@ -173,7 +164,6 @@ $products = $stmt->fetchAll();
     </p>
 
     <!-- ACTION BUTTONS -->
-
     <div style="
         display:flex;
         gap:10px;
@@ -181,44 +171,30 @@ $products = $stmt->fetchAll();
     ">
 
         <!-- EDIT -->
-
-        <a href="edit.php?id=<?= $p['id'] ?>"
-           style="
-                background:orange;
-                color:white;
-                padding:8px 12px;
-                text-decoration:none;
-                border-radius:5px;
-                display:inline-block;
-           ">
+        <a href="edit.php?id=<?= $p['id'] ?>" style="
+            background:orange;
+            color:white;
+            padding:8px 12px;
+            text-decoration:none;
+            border-radius:5px;
+            display:inline-block;
+        ">
             Edit
         </a>
 
         <!-- DELETE -->
+        <form method="POST" action="delete.php" onsubmit="return confirm('Delete this product?');">
 
-        <form
-            method="POST"
-            action="delete.php"
-            onsubmit="return confirm('Delete this product?');"
-        >
+            <input type="hidden" name="id" value="<?= $p['id'] ?>">
 
-            <input
-                type="hidden"
-                name="id"
-                value="<?= $p['id'] ?>"
-            >
-
-            <button
-                type="submit"
-                style="
-                    background:red;
-                    color:white;
-                    border:none;
-                    padding:8px 12px;
-                    border-radius:5px;
-                    cursor:pointer;
-                "
-            >
+            <button type="submit" style="
+                background:red;
+                color:white;
+                border:none;
+                padding:8px 12px;
+                border-radius:5px;
+                cursor:pointer;
+            ">
                 Delete
             </button>
 
