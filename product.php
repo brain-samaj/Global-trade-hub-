@@ -23,14 +23,19 @@ if (!$product) {
 
 <div style="max-width:800px; margin:auto; padding:20px;">
 
-    <!-- PRODUCT IMAGE -->
+
+  <!-- PRODUCT IMAGE -->
+  <a href="image.php?id=<?= $product['id'] ?>">
     <img src="<?= htmlspecialchars($product['image_url']) ?>"
+         alt="<?= htmlspecialchars($product['name']) ?>"
          style="
             width:100%;
             border-radius:10px;
             max-height:400px;
             object-fit:cover;
+            cursor:pointer;
          ">
+</a>
 
     <!-- PRODUCT NAME -->
     <h2><?= htmlspecialchars($product['name']) ?></h2>
