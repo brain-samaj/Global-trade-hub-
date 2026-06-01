@@ -1,4 +1,5 @@
 <?php
-require "config/db.php";
-var_dump($pdo);
-?>
+
+echo "<pre>";
+print_r(gd_info());
+echo "</pre>";
