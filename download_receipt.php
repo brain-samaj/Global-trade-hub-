@@ -6,6 +6,7 @@ if (!file_exists("vendor/autoload.php")) {
 
 require "vendor/autoload.php";
 require "config/db.php";
+date_default_timezone_set('Africa/Lagos');
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -51,9 +52,17 @@ if (!$order) {
 |--------------------------------------------------------------------------
 */
 
-$date = date("Y-m-d", strtotime($order["created_at"]));
-$time = date("H:i:s", strtotime($order["created_at"]));
+$dt = new DateTime(
+    $order["created_at"],
+    new DateTimeZone('UTC')
+);
 
+$dt->setTimezone(
+    new DateTimeZone('Africa/Lagos')
+);
+
+$date = $dt->format('Y-m-d');
+$time = $dt->format('H:i:s');
 /*
 |--------------------------------------------------------------------------
 | SECURITY (HMAC SIGNATURE)
@@ -151,8 +160,7 @@ GLOBAL TRADE HUB • VERIFIED TRANSACTION
 
 <hr>
 
-<p><strong>Status:</strong> PAID &#10004;</p>
-
+<p><strong>Status:</strong> PAID - VERIFIED</p>
 <p><strong>Product:</strong> ' . htmlspecialchars($order["product_name"]) . '</p>
 
 <p><strong>Customer:</strong> ' . htmlspecialchars($order["customer_name"]) . '</p>
@@ -161,8 +169,7 @@ GLOBAL TRADE HUB • VERIFIED TRANSACTION
 
 <hr>
 
-<p><strong>Amount Paid:</strong> &#8358;' . number_format($order["amount"]) . '</p>
-
+<p><strong>Amount Paid:</strong> NGN
 <p><strong>Reference:</strong> ' . htmlspecialchars($order["reference"]) . '</p>
 
 <hr>
