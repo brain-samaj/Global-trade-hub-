@@ -1,68 +1,90 @@
-<?php
-
-include "includes/header.php";
-require "config/db.php";
-
-// Fetch products safely
-$stmt = $pdo->query("SELECT * FROM products ORDER BY id DESC");
-$products = $stmt->fetchAll();
-
-?>
+<?php include "includes/header.php"; ?>
+<?php require "config/db.php"; ?>
 
 <h2 style="text-align:center;">Our Products</h2>
 
-<section class="products" style="
+<div style="display:flex;">
+
+<!-- SIDEBAR -->
+<aside style="width:220px;padding:15px;background:#f5f5f5;">
+
+    <h3>Categories</h3>
+
+    <button onclick="loadProducts()">All Products</button><br><br>
+
+    <b>Clothing</b><br>
+    <button onclick="loadProducts('Clothing')">All Clothing</button><br>
+    <button onclick="loadProducts('Clothing','Male')">Male</button><br>
+    <button onclick="loadProducts('Clothing','Female')">Female</button><br><br>
+
+    <b>Food</b><br>
+    <button onclick="loadProducts('Food & Beverages')">Food & Beverages</button><br><br>
+
+    <b>Electronics</b><br>
+    <button onclick="loadProducts('Electronics')">Electronics</button>
+
+</aside>
+
+<!-- PRODUCTS AREA -->
+<div id="productArea" style="
+    flex:1;
     display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
     gap:20px;
     padding:20px;
 ">
 
-<?php if (!$products): ?>
-    <p style="text-align:center;">No products available</p>
-<?php endif; ?>
+<?php
+$stmt = $pdo->query("SELECT * FROM products ORDER BY id DESC");
+foreach ($stmt as $p):
+?>
 
-<?php foreach ($products as $p): ?>
+<div style="background:#fff;padding:15px;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,.1);">
 
-<div class="card" style="
-    background:#fff;
-    padding:15px;
-    border-radius:10px;
-    box-shadow:0 0 10px rgba(0,0,0,0.1);
-">
-
-    <!-- CLICKABLE PRODUCT IMAGE -->
-    <a href="product.php?id=<?= $p['id'] ?>" style="text-decoration:none;">
-        <img src="<?= htmlspecialchars($p['image_url']) ?>"
-             style="width:100%; border-radius:10px;">
+    <a href="product.php?id=<?= $p['id'] ?>">
+        <img src="<?= $p['image_url'] ?>" style="width:100%;border-radius:10px;">
     </a>
 
-    <!-- PRODUCT NAME -->
     <h3><?= htmlspecialchars($p['name']) ?></h3>
 
-    <!-- DESCRIPTION -->
     <p><?= htmlspecialchars($p['description']) ?></p>
 
-    <!-- PRICE (₦ ONLY - FIXED) -->
-    <p><b>₦<?= number_format((int)$p['price']) ?></b></p>
+    <b>₦<?= number_format((int)$p['price']) ?></b>
 
-    <!-- ORDER BUTTON -->
+    <br><br>
+
     <a href="order.php?id=<?= $p['id'] ?>" style="
-        display:inline-block;
         padding:10px 15px;
         background:#007BFF;
         color:#fff;
         text-decoration:none;
         border-radius:5px;
-        margin-top:10px;
-    ">
-        Order Now
-    </a>
+        display:inline-block;
+    ">Order Now</a>
 
 </div>
 
 <?php endforeach; ?>
 
-</section>
+</div>
+
+</div>
+
+<!-- AJAX SCRIPT -->
+<script>
+function loadProducts(category = null, subcategory = null) {
+
+    let url = "fetch_products.php?";
+
+    if (category) url += "category=" + encodeURIComponent(category);
+    if (subcategory) url += "&subcategory=" + encodeURIComponent(subcategory);
+
+    fetch(url)
+    .then(res => res.text())
+    .then(data => {
+        document.getElementById("productArea").innerHTML = data;
+    });
+}
+</script>
 
 <?php include "includes/footer.php"; ?>
