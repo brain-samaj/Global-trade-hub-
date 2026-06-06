@@ -95,7 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         "tx_ref" => $reference,
         "amount" => $amount,
         "currency" => "NGN",
-        "redirect_url" => "https://your-live-domain.com/verify.php",
+        "redirect_url" => "https://global-trade-hub-3nbz.onrender.com/verify.php",
 
         "customer" => [
             "email" => $email,
