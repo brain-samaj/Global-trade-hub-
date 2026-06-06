@@ -1,8 +1,7 @@
 <?php
 
 ob_start();
-
-require "config/db.php";
+require __DIR__ . "/config/db.php";
 
 // ============================
 // GET PRODUCT
@@ -23,19 +22,17 @@ if (!$product) {
 }
 
 // ============================
-// PRICE PROCESSING
+// PRICE HANDLING
 // ============================
 
-$rawPrice = $product["price"];
-$cleanPrice = preg_replace('/[^0-9]/', '', $rawPrice);
-$amount = (int)$cleanPrice;
+$amount = (float)$product["price"];
 
 // ============================
 // FLUTTERWAVE SECRET
 // ============================
 
-$flutterwave_secret = getenv("FLUTTERWAVE_SECRET_KEY");
-
+$flutterwave_secret = getenv("FLW_SECRET_KEY");
+$flutterwave_public = getenv("FLW_PUBLIC_KEY");
 if (!$flutterwave_secret) {
     die("Flutterwave secret key not set");
 }
@@ -57,46 +54,60 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // Generate reference
     $reference = uniqid("FLW_");
 
-    // Save order (pending)
+    // ============================
+    // SELLER SUPPORT (PHASE 4.2)
+    // ============================
+
+    $seller_id = $product["seller_id"] ?? null;
+    $platform_fee = $amount * 0.10;
+    $seller_earnings = $amount - $platform_fee;
+
+    // ============================
+    // SAVE ORDER (PENDING)
+    // ============================
+
     $stmt = $pdo->prepare("
-        INSERT INTO orders (product_id, customer_name, phone, email, amount, reference)
-        VALUES (:product_id, :customer_name, :phone, :email, :amount, :reference)
+        INSERT INTO orders
+        (product_id, seller_id, customer_name, email, phone, amount, reference, status, platform_fee, seller_earnings)
+        VALUES
+        (:product_id, :seller_id, :customer_name, :email, :phone, :amount, :reference, 'pending', :platform_fee, :seller_earnings)
     ");
 
     $stmt->execute([
         ":product_id" => $id,
+        ":seller_id" => $seller_id,
         ":customer_name" => $name,
-        ":phone" => $phone,
         ":email" => $email,
+        ":phone" => $phone,
         ":amount" => $amount,
-        ":reference" => $reference
+        ":reference" => $reference,
+        ":platform_fee" => $platform_fee,
+        ":seller_earnings" => $seller_earnings
     ]);
 
     // ============================
     // FLUTTERWAVE PAYMENT INIT
     // ============================
 
-$url = "https://api.flutterwave.com/v3/payments";
+    $url = "https://api.flutterwave.com/v3/payments";
 
-$fields = [
-    "tx_ref" => $reference,
-    "amount" => $amount,
-    "currency" => "NGN",
+    $fields = [
+        "tx_ref" => $reference,
+        "amount" => $amount,
+        "currency" => "NGN",
+        "redirect_url" => "https://your-live-domain.com/verify.php",
 
-    // 🔥 IMPORTANT FIX: use LIVE domain, NOT localhost
-    "redirect_url" => "https://global-trade-hub-3nbz.onrender.com/verify.php",
+        "customer" => [
+            "email" => $email,
+            "name" => $name,
+            "phonenumber" => $phone
+        ],
 
-    "customer" => [
-        "email" => $email,
-        "name" => $name,
-        "phonenumber" => $phone
-    ],
-
-    "customizations" => [
-        "title" => "Global Trade Hub",
-        "description" => $product["name"]
-    ]
-];
+        "customizations" => [
+            "title" => "Global Trade Hub",
+            "description" => $product["name"]
+        ]
+    ];
 
     $ch = curl_init();
 
@@ -115,11 +126,11 @@ $fields = [
         die("Curl Error: " . curl_error($ch));
     }
 
+    curl_close($ch);
+
     $response = json_decode($result, true);
 
-    // curl_close removed (fixes your warning)
-
-    if (isset($response["status"]) && $response["status"] === "success") {
+    if (isset($response["data"]["link"])) {
         header("Location: " . $response["data"]["link"]);
         exit;
     } else {
@@ -137,20 +148,25 @@ $fields = [
 <body>
 
 <h2><?= htmlspecialchars($product["name"]) ?></h2>
+
 <p><?= htmlspecialchars($product["description"]) ?></p>
 
-<b>₦<?= htmlspecialchars($product["price"]) ?></b>
+<b>₦<?= number_format($amount) ?></b>
 
 <hr>
 
 <h3>Checkout</h3>
 
 <form method="POST">
+
     <input type="text" name="name" placeholder="Full Name" required><br><br>
+
     <input type="email" name="email" placeholder="Email" required><br><br>
-    <input type="text" name="phone" placeholder="Phone" required><br><br>
+
+    <input type="text" name="phone" placeholder="Phone Number" required><br><br>
 
     <button type="submit">Pay Now</button>
+
 </form>
 
 </body>

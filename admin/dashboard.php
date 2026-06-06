@@ -7,7 +7,7 @@ checkAdmin();
 
 /*
 |--------------------------------------------------------------------------
-| DASHBOARD SUMMARY
+| SUMMARY (ORDERS + REVENUE)
 |--------------------------------------------------------------------------
 */
 
@@ -21,20 +21,20 @@ $summary = $pdo->query("
 
 /*
 |--------------------------------------------------------------------------
-| PRODUCTS + SALES STATS
+| PRODUCTS + SELLER + SALES ANALYTICS
 |--------------------------------------------------------------------------
 */
 
 $stmt = $pdo->query("
     SELECT
         p.*,
+        s.full_name AS seller_name,
         COUNT(o.id) AS total_sales,
         COALESCE(SUM(o.amount::NUMERIC), 0) AS total_revenue
     FROM products p
-    LEFT JOIN orders o
-        ON p.id = o.product_id
-        AND o.status = 'paid'
-    GROUP BY p.id
+    LEFT JOIN sellers s ON p.seller_id = s.id
+    LEFT JOIN orders o ON p.id = o.product_id AND o.status = 'paid'
+    GROUP BY p.id, s.full_name
     ORDER BY p.id DESC
 ");
 
@@ -46,18 +46,14 @@ $products = $stmt->fetchAll();
 <html>
 <head>
     <title>Admin Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
-<body style="
-    font-family:Arial,sans-serif;
-    background:#f5f5f5;
-    margin:0;
-    padding:20px;
-">
+<body style="font-family:Arial;background:#f5f5f5;margin:0;padding:20px;">
 
-<h2>Admin Dashboard</h2>
+<h2>Admin Dashboard (Marketplace Control)</h2>
 
+<!-- TOP ACTIONS -->
 <div style="margin-bottom:20px;">
 
     <a href="upload.php" style="
@@ -68,6 +64,17 @@ $products = $stmt->fetchAll();
         border-radius:5px;
     ">
         ➕ Add Product
+    </a>
+
+    <a href="sellers.php" style="
+        background:#333;
+        color:white;
+        padding:10px 15px;
+        text-decoration:none;
+        border-radius:5px;
+        margin-left:10px;
+    ">
+        👤 Manage Sellers
     </a>
 
     <a href="logout.php" style="
@@ -83,33 +90,20 @@ $products = $stmt->fetchAll();
 
 </div>
 
-<!-- SALES SUMMARY -->
-
-<div style="
-    background:white;
-    padding:20px;
-    border-radius:10px;
-    margin-bottom:25px;
-    box-shadow:0 0 10px rgba(0,0,0,.1);
-">
+<!-- SUMMARY -->
+<div style="background:white;padding:20px;border-radius:10px;margin-bottom:20px;">
 
     <h3>Sales Summary</h3>
 
-    <p>
-        <strong>Total Paid Orders:</strong>
-        <?= (int)$summary['total_orders'] ?>
-    </p>
+    <p><strong>Total Paid Orders:</strong> <?= (int)$summary['total_orders'] ?></p>
 
-    <p>
-        <strong>Total Revenue:</strong>
-        ₦<?= number_format((float)$summary['total_revenue']) ?>
-    </p>
+    <p><strong>Total Revenue:</strong> ₦<?= number_format((float)$summary['total_revenue']) ?></p>
 
 </div>
 
 <hr>
 
-<h3>All Products</h3>
+<h3>Marketplace Products</h3>
 
 <div style="
     display:grid;
@@ -121,69 +115,48 @@ $products = $stmt->fetchAll();
 
 <div style="
     background:white;
-    border-radius:10px;
     padding:15px;
+    border-radius:10px;
     box-shadow:0 0 10px rgba(0,0,0,.1);
 ">
 
-    <!-- PRODUCT IMAGE -->
-    <img
-        src="<?= htmlspecialchars($p['image_url']) ?>"
-        style="
-            width:100%;
-            height:220px;
-            object-fit:cover;
-            border-radius:10px;
-        "
-    >
+    <!-- IMAGE -->
+    <img src="../<?= htmlspecialchars($p['image_url']) ?>"
+         style="width:100%;height:200px;object-fit:cover;border-radius:10px;">
 
-    <!-- PRODUCT NAME -->
     <h3><?= htmlspecialchars($p['name']) ?></h3>
 
-    <!-- PRODUCT DESCRIPTION -->
     <p><?= htmlspecialchars($p['description']) ?></p>
 
-    <!-- PRODUCT PRICE -->
-    <?php
-        $price = preg_replace('/[^0-9]/', '', $p['price']);
-    ?>
+    <h3>₦<?= number_format((int)$p['price']) ?></h3>
 
-    <h3>₦<?= number_format((int)$price) ?></h3>
+    <!-- SELLER INFO -->
+    <p>
+        <strong>Seller:</strong>
+        <?= htmlspecialchars($p['seller_name'] ?? 'Admin') ?>
+    </p>
 
     <hr>
 
-    <!-- SALES STATS -->
-    <p>
-        <strong>Units Sold:</strong>
-        <?= (int)$p['total_sales'] ?>
-    </p>
+    <!-- STATS -->
+    <p><strong>Units Sold:</strong> <?= (int)$p['total_sales'] ?></p>
 
-    <p>
-        <strong>Revenue Generated:</strong>
-        ₦<?= number_format((float)$p['total_revenue']) ?>
-    </p>
+    <p><strong>Revenue:</strong> ₦<?= number_format((float)$p['total_revenue']) ?></p>
 
-    <!-- ACTION BUTTONS -->
-    <div style="
-        display:flex;
-        gap:10px;
-        margin-top:15px;
-    ">
+    <!-- ACTIONS -->
+    <div style="display:flex;gap:10px;margin-top:10px;">
 
-        <!-- EDIT -->
         <a href="edit.php?id=<?= $p['id'] ?>" style="
             background:orange;
             color:white;
             padding:8px 12px;
             text-decoration:none;
             border-radius:5px;
-            display:inline-block;
         ">
             Edit
         </a>
 
-        <!-- DELETE -->
-        <form method="POST" action="delete.php" onsubmit="return confirm('Delete this product?');">
+        <form method="POST" action="delete.php" onsubmit="return confirm('Delete product?');">
 
             <input type="hidden" name="id" value="<?= $p['id'] ?>">
 
