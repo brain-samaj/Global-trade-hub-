@@ -1,7 +1,7 @@
 <?php
 require "config/db.php";
-$flutterwave_secret = getenv("FLW_SECRET_KEY");
-$flutterwave_public = getenv("FLW_PUBLIC_KEY");
+$flutterwave_secret = getenv("FLUTTERWAVE_SECRET_KEY");
+$flutterwave_public = getenv("FLUTTERWAVE_PUBLIC_KEY");
 $status = $_GET['status'] ?? null;
 $tx_ref = $_GET['tx_ref'] ?? null;
 
