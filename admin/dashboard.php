@@ -54,39 +54,41 @@ $products = $stmt->fetchAll();
 <h2>Admin Dashboard (Marketplace Control)</h2>
 
 <!-- TOP ACTIONS -->
-<div style="margin-bottom:20px;">
+<div style="
+    margin-bottom:20px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+">
+  <a href="upload.php" style="
+    background:green;
+    color:white;
+    padding:10px 15px;
+    text-decoration:none;
+    border-radius:5px;
+">
+    ➕ Add Product
+</a>
 
-    <a href="upload.php" style="
-        background:green;
-        color:white;
-        padding:10px 15px;
-        text-decoration:none;
-        border-radius:5px;
-    ">
-        ➕ Add Product
-    </a>
+<a href="manage-sellers.php" style="
+    background:#333;
+    color:white;
+    padding:10px 15px;
+    text-decoration:none;
+    border-radius:5px;
+">
+    👤 Manage Sellers
+</a>
 
-    <a href="sellers.php" style="
-        background:#333;
-        color:white;
-        padding:10px 15px;
-        text-decoration:none;
-        border-radius:5px;
-        margin-left:10px;
-    ">
-        👤 Manage Sellers
-    </a>
-
-    <a href="logout.php" style="
-        background:red;
-        color:white;
-        padding:10px 15px;
-        text-decoration:none;
-        border-radius:5px;
-        margin-left:10px;
-    ">
-        Logout
-    </a>
+<a href="logout.php" style="
+    background:red;
+    color:white;
+    padding:10px 15px;
+    text-decoration:none;
+    border-radius:5px;
+">
+    Logout
+</a>
 
 </div>
 
@@ -120,17 +122,30 @@ $products = $stmt->fetchAll();
     box-shadow:0 0 10px rgba(0,0,0,.1);
 ">
 
-    <!-- IMAGE -->
-    <img src="../<?= htmlspecialchars($p['image_url']) ?>"
-         style="width:100%;height:200px;object-fit:cover;border-radius:10px;">
+<!-- IMAGE -->
+<img
+    src="<?= !empty($p['image_url']) ? trim($p['image_url']) : 'https://via.placeholder.com/400x220?text=No+Image' ?>"
+    alt="<?= htmlspecialchars($p['name']) ?>"
+    style="
+        width:100%;
+        height:220px;
+        object-fit:cover;
+        border-radius:10px;
+        display:block;
+    "
+    loading="lazy"
+    onerror="this.src='https://via.placeholder.com/400x220?text=Image+Unavailable';"
+>
 
-    <h3><?= htmlspecialchars($p['name']) ?></h3>
+<h3><?= htmlspecialchars($p['name']) ?></h3>
 
-    <p><?= htmlspecialchars($p['description']) ?></p>
+<p><?= htmlspecialchars($p['description']) ?></p>
 
-    <h3>₦<?= number_format((int)$p['price']) ?></h3>
+<h3>
+    ₦<?= number_format((int)preg_replace('/[^0-9]/', '', $p['price'])) ?>
+</h3>
 
-    <!-- SELLER INFO -->
+<!--SELLER INFO -->
     <p>
         <strong>Seller:</strong>
         <?= htmlspecialchars($p['seller_name'] ?? 'Admin') ?>

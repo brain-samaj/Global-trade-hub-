@@ -1,7 +1,7 @@
 <?php
 require "config/db.php";
-$flutterwave_secret = getenv("FLW_SECRET_KEY");
-$flutterwave_public = getenv("FLW_PUBLIC_KEY");
+$flutterwave_secret = getenv("FLUTTERWAVE_SECRET_KEY");
+$flutterwave_public = getenv("FLUTTERWAVE_PUBLIC_KEY");
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $email = $_POST["email"];
@@ -10,7 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         die("Email required");
     }
 
-    $reference = uniqid("SELLER_FW_");
+    $reference = uniqid("SELLER_FLUTTERWAVE_");
 
     // save pending payment
     $stmt = $pdo->prepare("
@@ -33,7 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         "amount" => 20000,
         "currency" => "NGN",
         "payment_options" => "card,banktransfer,ussd",
-        "redirect_url" => "http://localhost:8000/seller-verify.php",
+        "redirect_url" => "https://global-trade-hub-3nbz.onrender.com/seller-verify.php",
         "customer" => [
             "email" => $email
         ],

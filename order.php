@@ -31,8 +31,8 @@ $amount = (float)$product["price"];
 // FLUTTERWAVE SECRET
 // ============================
 
-$flutterwave_secret = getenv("FLW_SECRET_KEY");
-$flutterwave_public = getenv("FLW_PUBLIC_KEY");
+$flutterwave_secret = getenv("FLUTTERWAVE_SECRET_KEY");
+$flutterwave_public = getenv("FLUTTERWAVE_PUBLIC_KEY");
 if (!$flutterwave_secret) {
     die("Flutterwave secret key not set");
 }
@@ -52,7 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 
     // Generate reference
-    $reference = uniqid("FLW_");
+    $reference = uniqid("FLUTTERWAVE_");
 
     // ============================
     // SELLER SUPPORT (PHASE 4.2)
