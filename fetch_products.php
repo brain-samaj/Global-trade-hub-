@@ -27,10 +27,21 @@ $stmt->execute($params);
 
 $products = $stmt->fetchAll();
 
+/*
+|--------------------------------------------------------------------------
+| NO PRODUCTS HANDLING
+|--------------------------------------------------------------------------
+*/
 if (!$products) {
-    echo "<p style='text-align:center;width:100%'>No products found</p>";
+    echo "<p style='text-align:center; width:100%; padding:20px;'>No products found</p>";
     exit;
 }
+
+/*
+|--------------------------------------------------------------------------
+| DISPLAY PRODUCTS
+|--------------------------------------------------------------------------
+*/
 
 foreach ($products as $p) {
 
@@ -46,10 +57,11 @@ foreach ($products as $p) {
         padding:15px;
         border-radius:10px;
         box-shadow:0 0 10px rgba(0,0,0,.1);
+        margin-bottom:15px;
     '>
 
         <a href='product.php?id=$id'>
-            <img src='$img' style='width:100%;border-radius:10px;'>
+            <img src='$img' style='width:100%; height:200px; object-fit:cover; border-radius:8px;'>
         </a>
 
         <h3>$name</h3>
@@ -60,9 +72,13 @@ foreach ($products as $p) {
         <br><br>
     ";
 
-    // 🟢 SELLER TAG (NEW FEATURE)
+    /*
+    |--------------------------------------------------------------------------
+    | SELLER TAG
+    |--------------------------------------------------------------------------
+    */
     if (!empty($p["seller_id"])) {
-        echo "<small style='color:green'>Seller Product</small><br><br>";
+        echo "<small style='color:green;'>✔ Seller Product</small><br><br>";
     }
 
     echo "
@@ -77,3 +93,4 @@ foreach ($products as $p) {
 
     </div>";
 }
+?>

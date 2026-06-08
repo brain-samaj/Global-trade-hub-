@@ -1,22 +1,48 @@
 <?php
+session_start();
 
 require "../config/db.php";
-require "../includes/auth.php";
 
-checkAdmin();
+/*
+|--------------------------------------------------------------------------
+| ADMIN AUTH GUARD
+|--------------------------------------------------------------------------
+*/
+
+if (!isset($_SESSION["user_id"])) {
+    header("Location: ../login.php");
+    exit();
+}
+
+if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "admin") {
+    exit("Access denied: Admins only.");
+}
+
+/*
+|--------------------------------------------------------------------------
+| FETCH SELLERS + PRODUCT STATS
+|--------------------------------------------------------------------------
+*/
 
 $stmt = $pdo->query("
     SELECT
         s.*,
+        u.name,
+        u.email,
         COUNT(p.id) AS total_products
     FROM sellers s
+    INNER JOIN users u
+        ON s.user_id = u.id
     LEFT JOIN products p
         ON s.id = p.seller_id
-    GROUP BY s.id
-    ORDER BY s.created_at DESC
+    GROUP BY
+        s.id,
+        u.name,
+        u.email
+    ORDER BY s.id DESC
 ");
 
-$sellers = $stmt->fetchAll();
+$sellers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 
@@ -25,9 +51,11 @@ $sellers = $stmt->fetchAll();
 <head>
     <title>Manage Sellers</title>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
     <style>
+
         body{
             font-family:Arial,sans-serif;
             background:#f5f5f5;
@@ -50,14 +78,6 @@ $sellers = $stmt->fetchAll();
             background:#333;
         }
 
-        .card{
-            background:white;
-            padding:20px;
-            margin-bottom:20px;
-            border-radius:10px;
-            box-shadow:0 0 10px rgba(0,0,0,.1);
-        }
-
         .approve{
             background:green;
         }
@@ -66,9 +86,18 @@ $sellers = $stmt->fetchAll();
             background:red;
         }
 
-        .stats{
-            margin-top:10px;
+        .card{
+            background:white;
+            padding:20px;
+            margin-bottom:20px;
+            border-radius:10px;
+            box-shadow:0 0 10px rgba(0,0,0,.1);
         }
+
+        .stats{
+            margin-top:15px;
+        }
+
     </style>
 </head>
 
@@ -84,7 +113,7 @@ $sellers = $stmt->fetchAll();
 
 </div>
 
-<?php if (!$sellers): ?>
+<?php if (empty($sellers)): ?>
 
     <div class="card">
         No sellers registered yet.
@@ -92,52 +121,70 @@ $sellers = $stmt->fetchAll();
 
 <?php endif; ?>
 
+
 <?php foreach ($sellers as $seller): ?>
 
 <div class="card">
 
-    <h3><?= htmlspecialchars($seller['full_name']) ?></h3>
+    <h3>
+        <?= htmlspecialchars($seller["name"]) ?>
+    </h3>
 
-    <p><strong>Email:</strong> <?= htmlspecialchars($seller['email']) ?></p>
+    <p>
+        <strong>Email:</strong>
+        <?= htmlspecialchars($seller["email"]) ?>
+    </p>
 
-    <p><strong>Phone:</strong> <?= htmlspecialchars($seller['phone']) ?></p>
+    <p>
+        <strong>Phone:</strong>
+        <?= htmlspecialchars($seller["phone"] ?? "") ?>
+    </p>
 
-    <p><strong>Location:</strong> <?= htmlspecialchars($seller['location']) ?></p>
+    <p>
+        <strong>Location:</strong>
+        <?= htmlspecialchars($seller["location"] ?? "") ?>
+    </p>
 
-    <p><strong>NIN:</strong> <?= htmlspecialchars($seller['nin']) ?></p>
+    <p>
+        <strong>NIN:</strong>
+        <?= htmlspecialchars($seller["nin"] ?? "") ?>
+    </p>
 
-    <p><strong>Status:</strong> <?= ucfirst($seller['status']) ?></p>
+    <p>
+        <strong>Status:</strong>
+        <?= ucfirst($seller["status"] ?? "pending") ?>
+    </p>
 
     <div class="stats">
 
         <p>
             <strong>Total Products:</strong>
-            <?= $seller['total_products'] ?>
+            <?= $seller["total_products"] ?>
         </p>
 
         <p>
             <strong>Wallet Balance:</strong>
-            ₦<?= number_format($seller['wallet_balance'], 2) ?>
+            ₦<?= number_format($seller["wallet_balance"] ?? 0) ?>
         </p>
 
         <p>
             <strong>Total Earned:</strong>
-            ₦<?= number_format($seller['total_earned'], 2) ?>
+            ₦<?= number_format($seller["total_earned"] ?? 0) ?>
         </p>
 
         <p>
             <strong>Total Withdrawn:</strong>
-            ₦<?= number_format($seller['total_withdrawn'], 2) ?>
+            ₦<?= number_format($seller["total_withdrawn"] ?? 0) ?>
         </p>
 
     </div>
 
     <div style="margin-top:15px;">
 
-        <?php if ($seller['status'] !== 'approved'): ?>
+        <?php if (($seller["status"] ?? "") !== "approved"): ?>
 
             <a
-                href="approve-seller.php?id=<?= $seller['id'] ?>"
+                href="approve-seller.php?id=<?= $seller["id"] ?>"
                 class="btn approve"
             >
                 Approve
@@ -145,11 +192,13 @@ $sellers = $stmt->fetchAll();
 
         <?php endif; ?>
 
-        <?php if ($seller['status'] !== 'suspended'): ?>
+
+        <?php if (($seller["status"] ?? "") !== "suspended"): ?>
 
             <a
-                href="suspend-seller.php?id=<?= $seller['id'] ?>"
+                href="suspend-seller.php?id=<?= $seller["id"] ?>"
                 class="btn suspend"
+                onclick="return confirm('Suspend this seller?')"
             >
                 Suspend
             </a>
