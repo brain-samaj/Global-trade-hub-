@@ -2,37 +2,77 @@
 session_start();
 require "config/db.php";
 
-if (!isset($_SESSION["seller_id"])) {
-    die("Access denied");
+/*
+|--------------------------------------------------------------------------
+| AUTH CHECK (NEW SYSTEM)
+|--------------------------------------------------------------------------
+*/
+
+if (!isset($_SESSION["user_id"])) {
+    header("Location: login.php");
+    exit();
 }
 
-$seller_id = $_SESSION["seller_id"];
+if ($_SESSION["role"] !== "seller") {
+    exit("Access denied: Sellers only.");
+}
+
+$seller_id = $_SESSION["user_id"];
 $message = "";
+
+/*
+|--------------------------------------------------------------------------
+| HANDLE UPLOAD
+|--------------------------------------------------------------------------
+*/
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     try {
 
-        if (
-            empty($_POST["name"]) ||
-            empty($_POST["price"]) ||
-            empty($_POST["description"]) ||
-            empty($_POST["category"])
-        ) {
-            throw new Exception("All fields required");
+        $name = trim($_POST["name"]);
+        $price = trim($_POST["price"]);
+        $description = trim($_POST["description"]);
+        $category = trim($_POST["category"]);
+
+        if ($name === "" || $price === "" || $description === "" || $category === "") {
+            throw new Exception("All fields are required");
         }
 
-        if (!isset($_FILES["image"])) {
-            throw new Exception("Image required");
+        if (!isset($_FILES["image"]) || $_FILES["image"]["error"] !== 0) {
+            throw new Exception("Image upload failed");
         }
 
-        $file = $_FILES["image"]["tmp_name"];
-        $filename = time() . "_" . basename($_FILES["image"]["name"]);
-        $path = "uploads/" . $filename;
+        /*
+        |--------------------------------------------------------------------------
+        | IMAGE UPLOAD (LOCAL STORAGE)
+        |--------------------------------------------------------------------------
+        */
 
-        move_uploaded_file($file, $path);
+        $allowed = ["jpg", "jpeg", "png", "webp"];
+        $ext = strtolower(pathinfo($_FILES["image"]["name"], PATHINFO_EXTENSION));
 
-        // IMPORTANT: match your existing products schema
+        if (!in_array($ext, $allowed)) {
+            throw new Exception("Invalid image type (jpg, png, webp only)");
+        }
+
+        $filename = time() . "_" . rand(1000,9999) . "." . $ext;
+        $uploadDir = "uploads/";
+
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        $filepath = $uploadDir . $filename;
+
+        move_uploaded_file($_FILES["image"]["tmp_name"], $filepath);
+
+        /*
+        |--------------------------------------------------------------------------
+        | INSERT PRODUCT
+        |--------------------------------------------------------------------------
+        */
+
         $stmt = $pdo->prepare("
             INSERT INTO products
             (name, description, price, image_url, category, seller_id)
@@ -41,15 +81,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         ");
 
         $stmt->execute([
-            ":name" => $_POST["name"],
-            ":description" => $_POST["description"],
-            ":price" => $_POST["price"],
-            ":image_url" => $path,
-            ":category" => $_POST["category"],
+            ":name" => $name,
+            ":description" => $description,
+            ":price" => $price,
+            ":image_url" => $filepath,
+            ":category" => $category,
             ":seller_id" => $seller_id
         ]);
 
-        $message = "Product uploaded successfully";
+        $message = "Product uploaded successfully!";
 
     } catch (Exception $e) {
         $message = $e->getMessage();
@@ -57,28 +97,61 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 ?>
 
-<h2>Upload Product</h2>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Product</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body style="font-family:Arial; background:#f5f5f5; padding:20px;">
+
+<h2>📦 Upload New Product</h2>
 
 <?php if ($message): ?>
-<p><?= $message ?></p>
+    <p style="padding:10px; background:#e0ffe0; border:1px solid green;">
+        <?= htmlspecialchars($message) ?>
+    </p>
 <?php endif; ?>
+
+<!-- FORM CARD -->
+<div style="background:white; padding:20px; border-radius:10px; max-width:500px;">
 
 <form method="POST" enctype="multipart/form-data">
 
-    <input type="text" name="name" placeholder="Product Name" required><br><br>
+    <label>Product Name</label><br>
+    <input type="text" name="name" style="width:100%; padding:10px;" required>
+    <br><br>
 
-    <input type="text" name="price" placeholder="Price" required><br><br>
+    <label>Price</label><br>
+    <input type="number" name="price" style="width:100%; padding:10px;" required>
+    <br><br>
 
-    <textarea name="description" placeholder="Description" required></textarea><br><br>
+    <label>Description</label><br>
+    <textarea name="description" style="width:100%; padding:10px;" required></textarea>
+    <br><br>
 
-    <select name="category" required>
+    <label>Category</label><br>
+    <select name="category" style="width:100%; padding:10px;" required>
         <option value="Clothing">Clothing</option>
-        <option value="Food & Beverages">Food & Beverages</option>
+        <option value="Food">Food</option>
         <option value="Electronics">Electronics</option>
-    </select><br><br>
+        <option value="Services">Services</option>
+    </select>
+    <br><br>
 
-    <input type="file" name="image" required><br><br>
+    <label>Product Image</label><br>
+    <input type="file" name="image" required>
+    <br><br>
 
-    <button type="submit">Upload Product</button>
+    <button type="submit"
+        style="width:100%; padding:12px; background:green; color:white; border:none; border-radius:5px;">
+        Upload Product
+    </button>
 
 </form>
+
+</div>
+
+</body>
+</html>

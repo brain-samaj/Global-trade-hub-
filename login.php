@@ -13,49 +13,42 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $error = "Please fill all fields";
     } else {
 
-        // 1. CHECK ADMIN FIRST (optional simple admin check)
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? AND role = 'admin'");
-        $stmt->execute([$email]);
-        $admin = $stmt->fetch();
+        // FETCH USER
+        $stmt = $pdo->prepare("
+            SELECT * FROM users
+            WHERE email = :email
+            LIMIT 1
+        ");
+        $stmt->execute([":email" => $email]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($admin && password_verify($password, $admin["password"])) {
+        // VALIDATE USER
+        if (!$user) {
+            $error = "Invalid email or password";
+        } elseif (!password_verify($password, $user["password"])) {
+            $error = "Invalid email or password";
+        } else {
 
-            $_SESSION["user_id"] = $admin["id"];
-            $_SESSION["role"] = "admin";
+            // SESSION
+            $_SESSION["user_id"] = $user["id"];
+            $_SESSION["user_email"] = $user["email"];
+            $_SESSION["user_role"] = $user["role"];
 
-            header("Location: admin/dashboard.php");
-            exit;
-        }
+            // ROLE ROUTING
+            if ($user["role"] === "admin") {
+                header("Location: admin/dashboard.php");
+                exit;
+            }
 
-        // 2. CHECK SELLER
-        $stmt = $pdo->prepare("SELECT * FROM sellers WHERE email = ?");
-        $stmt->execute([$email]);
-        $seller = $stmt->fetch();
+            if ($user["role"] === "seller") {
+                header("Location: seller-dashboard.php");
+                exit;
+            }
 
-        if ($seller && password_verify($password, $seller["password"])) {
-
-            $_SESSION["seller_id"] = $seller["id"];
-            $_SESSION["role"] = "seller";
-
-            header("Location: seller-dashboard.php");
-            exit;
-        }
-
-        // 3. CHECK BUYER (NEW SYSTEM)
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? AND role = 'buyer'");
-        $stmt->execute([$email]);
-        $buyer = $stmt->fetch();
-
-        if ($buyer && password_verify($password, $buyer["password"])) {
-
-            $_SESSION["user_id"] = $buyer["id"];
-            $_SESSION["role"] = "buyer";
-
+            // default = buyer
             header("Location: buyer-dashboard.php");
             exit;
         }
-
-        $error = "Invalid email or password";
     }
 }
 ?>
@@ -111,7 +104,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <h2 style="text-align:center;">Login</h2>
 
     <?php if($error): ?>
-        <p class="error"><?= $error ?></p>
+        <p class="error"><?= htmlspecialchars($error) ?></p>
     <?php endif; ?>
 
     <form method="POST">
