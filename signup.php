@@ -1,90 +1,49 @@
-<?php
-session_start();
-?>
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Sign Up - Global Trade Hub</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Global Trade Hub</title>
+    <style>
+        body{
+            font-family:Arial;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+            background:#f4f4f4;
+        }
 
-<style>
-body{
-    margin:0;
-    font-family:Arial, sans-serif;
-    background: linear-gradient(135deg, #0d47a1, #1976d2);
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    color:white;
-}
+        .box{
+            background:white;
+            padding:30px;
+            border-radius:10px;
+            text-align:center;
+            width:320px;
+        }
 
-.container{
-    text-align:center;
-    width:90%;
-    max-width:500px;
-}
+        a{
+            display:block;
+            margin:12px 0;
+            padding:12px;
+            background:#0d47a1;
+            color:white;
+            text-decoration:none;
+            border-radius:6px;
+        }
 
-h1{
-    margin-bottom:10px;
-}
-
-p{
-    margin-bottom:30px;
-    opacity:0.9;
-}
-
-.card{
-    background:white;
-    color:black;
-    padding:20px;
-    margin:10px;
-    border-radius:12px;
-    cursor:pointer;
-    transition:0.3s;
-    box-shadow:0 5px 15px rgba(0,0,0,0.2);
-}
-
-.card:hover{
-    transform:scale(1.05);
-}
-
-a{
-    text-decoration:none;
-    color:inherit;
-}
-</style>
+        a:hover{
+            background:#08306b;
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="container">
+<div class="box">
 
-    <h1>Create Account</h1>
-    <p>Choose how you want to join Global Trade Hub</p>
+    <h2>Create Account</h2>
 
-    <!-- BUYER -->
-    <a href="buyer-signup.php">
-        <div class="card">
-            <h2>👤 Sign up as Buyer</h2>
-            <p>Browse products and place orders easily</p>
-        </div>
-    </a>
+    <a href="buyer-signup.php">Sign up as Buyer</a>
 
-    <!-- SELLER -->
-    <a href="become-seller.php">
-        <div class="card">
-            <h2>🏪 Sign up as Seller</h2>
-            <p>Sell products, manage store, earn money</p>
-        </div>
-    </a>
-
-    <p style="margin-top:20px;">
-        Already have an account?
-        <a href="login.php" style="color:yellow;">Login</a>
-    </p>
+    <a href="seller-register.php">Sign up as Seller</a>
 
 </div>
 

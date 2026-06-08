@@ -17,12 +17,12 @@ require "config/db.php";
 
     <h1>Global Trade Hub</h1>
 
-    <p>Connecting African Products to the World</p>
+    <p>Connecting Buyers and Sellers Globally</p>
 
     <!-- AUTH BUTTONS -->
     <div style="margin:20px 0;">
         <a href="login.php" class="btn">Sign In</a>
-        <a href="buyer-register.php" class="btn">Sign Up</a>
+        <a href="signup.php" class="btn">Sign Up</a>
         <a href="become-seller.php" class="btn">Become a Seller</a>
     </div>
 
