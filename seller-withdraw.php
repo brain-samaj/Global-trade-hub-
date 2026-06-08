@@ -3,9 +3,9 @@ session_start();
 require "config/db.php";
 
 /*
-|------------------------------------------
-| AUTH CHECK (SELLER ONLY)
-|------------------------------------------
+|--------------------------------------------------------------------------
+| AUTH CHECK
+|--------------------------------------------------------------------------
 */
 
 if (!isset($_SESSION["user_id"]) || !isset($_SESSION["role"])) {
@@ -21,15 +21,13 @@ $seller_id = $_SESSION["user_id"];
 $message = "";
 
 /*
-|------------------------------------------
-| GET SELLER INFO
-|------------------------------------------
+|--------------------------------------------------------------------------
+| FETCH SELLER
+|--------------------------------------------------------------------------
 */
 
-$stmt = $pdo->prepare("
-    SELECT * FROM users WHERE id = :id AND role = 'seller'
-");
-$stmt->execute([":id" => $seller_id]);
+$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmt->execute([$seller_id]);
 $seller = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$seller) {
@@ -37,16 +35,40 @@ if (!$seller) {
 }
 
 /*
-|------------------------------------------
-| HANDLE WITHDRAW REQUEST
-|------------------------------------------
+|--------------------------------------------------------------------------
+| NIGERIA BANK LIST
+|--------------------------------------------------------------------------
+*/
+
+$banks = [
+    "Access Bank",
+    "GTBank",
+    "Zenith Bank",
+    "First Bank of Nigeria",
+    "UBA",
+    "Fidelity Bank",
+    "Union Bank",
+    "Sterling Bank",
+    "Wema Bank",
+    "Polaris Bank",
+    "Ecobank",
+    "FCMB",
+    "Jaiz Bank",
+    "Providus Bank",
+    "Stanbic IBTC"
+];
+
+/*
+|--------------------------------------------------------------------------
+| HANDLE WITHDRAWAL
+|--------------------------------------------------------------------------
 */
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     try {
 
-        $amount = (int) $_POST["amount"];
+        $amount = (float) $_POST["amount"];
         $bank_name = trim($_POST["bank_name"]);
         $account_number = trim($_POST["account_number"]);
 
@@ -54,10 +76,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             throw new Exception("All fields are required");
         }
 
+        if (!in_array($bank_name, $banks)) {
+            throw new Exception("Invalid bank selected");
+        }
+
         /*
-        |--------------------------------------
-        | OPTIONAL: CHECK BALANCE SAFETY
-        |--------------------------------------
+        |--------------------------------------------------------------------------
+        | WALLET CHECK
+        |--------------------------------------------------------------------------
         */
 
         $balance = (float) ($seller["wallet_balance"] ?? 0);
@@ -67,21 +93,32 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         /*
-        |--------------------------------------
-        | INSERT WITHDRAW REQUEST
-        |--------------------------------------
+        |--------------------------------------------------------------------------
+        | WITHDRAWAL FEE (0.25%)
+        |--------------------------------------------------------------------------
+        */
+
+        $fee = $amount * 0.0025;
+        $net = $amount - $fee;
+
+        /*
+        |--------------------------------------------------------------------------
+        | INSERT WITHDRAWAL
+        |--------------------------------------------------------------------------
         */
 
         $stmt = $pdo->prepare("
             INSERT INTO withdrawals
-            (seller_id, amount, bank_name, account_number, status)
+            (seller_id, amount, fee, net_amount, bank_name, account_number, status)
             VALUES
-            (:seller_id, :amount, :bank_name, :account_number, 'pending')
+            (:seller_id, :amount, :fee, :net_amount, :bank_name, :account_number, 'pending')
         ");
 
         $stmt->execute([
             ":seller_id" => $seller_id,
             ":amount" => $amount,
+            ":fee" => $fee,
+            ":net_amount" => $net,
             ":bank_name" => $bank_name,
             ":account_number" => $account_number
         ]);
@@ -94,20 +131,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 
 /*
-|------------------------------------------
-| FETCH WITHDRAWAL HISTORY
-|------------------------------------------
+|--------------------------------------------------------------------------
+| FETCH HISTORY
+|--------------------------------------------------------------------------
 */
 
 $stmt = $pdo->prepare("
     SELECT *
     FROM withdrawals
-    WHERE seller_id = :id
+    WHERE seller_id = ?
     ORDER BY id DESC
 ");
 
-$stmt->execute([":id" => $seller_id]);
-
+$stmt->execute([$seller_id]);
 $withdrawals = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -115,7 +151,7 @@ $withdrawals = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <html>
 <head>
     <title>Seller Withdraw</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
         body{
@@ -130,9 +166,10 @@ $withdrawals = $stmt->fetchAll(PDO::FETCH_ASSOC);
             background:white;
             padding:20px;
             border-radius:10px;
+            margin-bottom:20px;
         }
 
-        input{
+        input, select{
             width:100%;
             padding:10px;
             margin-bottom:10px;
@@ -149,18 +186,23 @@ $withdrawals = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         table{
             width:100%;
-            margin-top:20px;
             background:white;
             border-collapse:collapse;
         }
 
-        td,th{
+        td, th{
             border:1px solid #ddd;
             padding:8px;
         }
 
         th{
             background:#eee;
+        }
+
+        .msg{
+            padding:10px;
+            background:#e6ffe6;
+            margin-bottom:10px;
         }
     </style>
 </head>
@@ -172,16 +214,19 @@ $withdrawals = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <h2>Withdraw Funds</h2>
 
     <?php if ($message): ?>
-        <p style="color:green;">
-            <?= htmlspecialchars($message) ?>
-        </p>
+        <div class="msg"><?= htmlspecialchars($message) ?></div>
     <?php endif; ?>
 
     <form method="POST">
 
         <input type="number" name="amount" placeholder="Amount" required>
 
-        <input type="text" name="bank_name" placeholder="Bank Name" required>
+        <select name="bank_name" required>
+            <option value="">Select Bank</option>
+            <?php foreach ($banks as $b): ?>
+                <option value="<?= $b ?>"><?= $b ?></option>
+            <?php endforeach; ?>
+        </select>
 
         <input type="text" name="account_number" placeholder="Account Number" required>
 
@@ -191,29 +236,28 @@ $withdrawals = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 </div>
 
-<!-- HISTORY -->
 <div class="box">
 
     <h3>Withdrawal History</h3>
 
     <table>
-
         <tr>
             <th>Amount</th>
+            <th>Fee</th>
+            <th>Net</th>
             <th>Bank</th>
-            <th>Account</th>
             <th>Status</th>
         </tr>
 
         <?php foreach ($withdrawals as $w): ?>
         <tr>
             <td>₦<?= number_format($w["amount"]) ?></td>
+            <td>₦<?= number_format($w["fee"] ?? 0) ?></td>
+            <td>₦<?= number_format($w["net_amount"] ?? 0) ?></td>
             <td><?= htmlspecialchars($w["bank_name"]) ?></td>
-            <td><?= htmlspecialchars($w["account_number"]) ?></td>
             <td><?= ucfirst($w["status"]) ?></td>
         </tr>
         <?php endforeach; ?>
-
     </table>
 
 </div>

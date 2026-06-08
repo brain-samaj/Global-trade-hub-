@@ -2,48 +2,43 @@
 session_start();
 
 require "../config/db.php";
+require "../includes/auth.php";
+
+checkAdmin();
 
 /*
 |--------------------------------------------------------------------------
-| ADMIN AUTH GUARD
-|--------------------------------------------------------------------------
-*/
-
-if (!isset($_SESSION["user_id"])) {
-    header("Location: ../login.php");
-    exit();
-}
-
-if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "admin") {
-    exit("Access denied: Admins only.");
-}
-
-/*
-|--------------------------------------------------------------------------
-| FETCH SELLERS + PRODUCT STATS
+| FETCH SELLERS (USERS TABLE IS SOURCE OF TRUTH)
 |--------------------------------------------------------------------------
 */
 
 $stmt = $pdo->query("
     SELECT
-        s.*,
+        u.id AS user_id,
         u.name,
         u.email,
-        COUNT(p.id) AS total_products
-    FROM sellers s
-    INNER JOIN users u
+        u.phone,
+        u.country,
+        u.city,
+        u.role,
+        u.created_at,
+        COALESCE(s.status, 'pending') AS status,
+        COALESCE(s.wallet_balance, 0) AS wallet_balance,
+        COALESCE(s.total_earned, 0) AS total_earned,
+        COALESCE(s.total_withdrawn, 0) AS total_withdrawn,
+        (
+            SELECT COUNT(*)
+            FROM products p
+            WHERE p.seller_id = u.id
+        ) AS total_products
+    FROM users u
+    LEFT JOIN sellers s
         ON s.user_id = u.id
-    LEFT JOIN products p
-        ON s.id = p.seller_id
-    GROUP BY
-        s.id,
-        u.name,
-        u.email
-    ORDER BY s.id DESC
+    WHERE u.role = 'seller'
+    ORDER BY u.id DESC
 ");
 
 $sellers = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 ?>
 
 <!DOCTYPE html>
@@ -51,11 +46,9 @@ $sellers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <title>Manage Sellers</title>
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
-
         body{
             font-family:Arial,sans-serif;
             background:#f5f5f5;
@@ -74,17 +67,9 @@ $sellers = $stmt->fetchAll(PDO::FETCH_ASSOC);
             color:white;
         }
 
-        .back{
-            background:#333;
-        }
-
-        .approve{
-            background:green;
-        }
-
-        .suspend{
-            background:red;
-        }
+        .back{ background:#333; }
+        .approve{ background:green; }
+        .suspend{ background:red; }
 
         .card{
             background:white;
@@ -97,112 +82,63 @@ $sellers = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .stats{
             margin-top:15px;
         }
-
     </style>
 </head>
 
 <body>
 
 <div class="top">
-
     <h2>Manage Sellers</h2>
-
-    <a href="dashboard.php" class="btn back">
-        ← Dashboard
-    </a>
-
+    <a href="dashboard.php" class="btn back">← Dashboard</a>
 </div>
 
 <?php if (empty($sellers)): ?>
-
     <div class="card">
         No sellers registered yet.
     </div>
-
 <?php endif; ?>
-
 
 <?php foreach ($sellers as $seller): ?>
 
 <div class="card">
 
-    <h3>
-        <?= htmlspecialchars($seller["name"]) ?>
-    </h3>
+    <h3><?= htmlspecialchars($seller["name"]) ?></h3>
 
-    <p>
-        <strong>Email:</strong>
-        <?= htmlspecialchars($seller["email"]) ?>
-    </p>
+    <p><strong>Email:</strong> <?= htmlspecialchars($seller["email"]) ?></p>
 
-    <p>
-        <strong>Phone:</strong>
-        <?= htmlspecialchars($seller["phone"] ?? "") ?>
-    </p>
+    <p><strong>Phone:</strong> <?= htmlspecialchars($seller["phone"] ?? 'N/A') ?></p>
 
-    <p>
-        <strong>Location:</strong>
-        <?= htmlspecialchars($seller["location"] ?? "") ?>
-    </p>
+    <p><strong>Location:</strong> <?= htmlspecialchars(($seller["city"] ?? '') . ' ' . ($seller["country"] ?? '')) ?></p>
 
-    <p>
-        <strong>NIN:</strong>
-        <?= htmlspecialchars($seller["nin"] ?? "") ?>
-    </p>
+    <p><strong>Role:</strong> <?= htmlspecialchars($seller["role"]) ?></p>
 
-    <p>
-        <strong>Status:</strong>
-        <?= ucfirst($seller["status"] ?? "pending") ?>
-    </p>
+    <p><strong>Status:</strong> <?= htmlspecialchars($seller["status"]) ?></p>
 
     <div class="stats">
 
-        <p>
-            <strong>Total Products:</strong>
-            <?= $seller["total_products"] ?>
-        </p>
+        <p><strong>Total Products:</strong> <?= (int)$seller["total_products"] ?></p>
 
-        <p>
-            <strong>Wallet Balance:</strong>
-            ₦<?= number_format($seller["wallet_balance"] ?? 0) ?>
-        </p>
+        <p><strong>Wallet Balance:</strong> ₦<?= number_format((float)$seller["wallet_balance"]) ?></p>
 
-        <p>
-            <strong>Total Earned:</strong>
-            ₦<?= number_format($seller["total_earned"] ?? 0) ?>
-        </p>
+        <p><strong>Total Earned:</strong> ₦<?= number_format((float)$seller["total_earned"]) ?></p>
 
-        <p>
-            <strong>Total Withdrawn:</strong>
-            ₦<?= number_format($seller["total_withdrawn"] ?? 0) ?>
-        </p>
+        <p><strong>Total Withdrawn:</strong> ₦<?= number_format((float)$seller["total_withdrawn"]) ?></p>
 
     </div>
 
     <div style="margin-top:15px;">
 
-        <?php if (($seller["status"] ?? "") !== "approved"): ?>
-
-            <a
-                href="approve-seller.php?id=<?= $seller["id"] ?>"
-                class="btn approve"
-            >
+        <?php if (($seller["status"] ?? "pending") !== "approved"): ?>
+            <a href="approve-seller.php?id=<?= $seller["user_id"] ?>" class="btn approve">
                 Approve
             </a>
-
         <?php endif; ?>
 
-
-        <?php if (($seller["status"] ?? "") !== "suspended"): ?>
-
-            <a
-                href="suspend-seller.php?id=<?= $seller["id"] ?>"
-                class="btn suspend"
-                onclick="return confirm('Suspend this seller?')"
-            >
+        <?php if (($seller["status"] ?? "pending") !== "suspended"): ?>
+            <a href="suspend-seller.php?id=<?= $seller["user_id"] ?>" class="btn suspend"
+               onclick="return confirm('Suspend this seller?')">
                 Suspend
             </a>
-
         <?php endif; ?>
 
     </div>

@@ -1,33 +1,26 @@
 <?php
 session_start();
+
 require "config/db.php";
+require "includes/auth.php";
+
+checkSeller();
 
 /*
 |--------------------------------------------------------------------------
-| AUTH CHECK (NEW SYSTEM)
+| FETCH SELLER INFO (USERS TABLE IS SOURCE OF TRUTH)
 |--------------------------------------------------------------------------
 */
 
-if (!isset($_SESSION["user_id"])) {
-    header("Location: login.php");
-    exit();
-}
+$stmt = $pdo->prepare("
+    SELECT *
+    FROM users
+    WHERE id = ?
+    LIMIT 1
+");
 
-if ($_SESSION["role"] !== "seller") {
-    exit("Access denied: Sellers only.");
-}
-
-$seller_id = $_SESSION["user_id"];
-
-/*
-|--------------------------------------------------------------------------
-| FETCH SELLER INFO (FROM users TABLE NOW)
-|--------------------------------------------------------------------------
-*/
-
-$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
-$stmt->execute([$seller_id]);
-$seller = $stmt->fetch();
+$stmt->execute([$_SESSION["user_id"]]);
+$seller = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$seller) {
     exit("Seller not found");
@@ -46,89 +39,138 @@ $stmt = $pdo->prepare("
     ORDER BY id DESC
 ");
 
-$stmt->execute([$seller_id]);
-$products = $stmt->fetchAll();
+$stmt->execute([$_SESSION["user_id"]]);
+$products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+/*
+|--------------------------------------------------------------------------
+| FETCH SELLER ORDERS (NEW FIX - IMPORTANT)
+|--------------------------------------------------------------------------
+*/
+
+$stmt = $pdo->prepare("
+    SELECT o.*, p.name AS product_name, p.price
+    FROM orders o
+    JOIN products p ON o.product_id = p.id
+    WHERE p.seller_id = ?
+    ORDER BY o.id DESC
+");
+
+$stmt->execute([$_SESSION["user_id"]]);
+$orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
     <title>Seller Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body{
+            font-family:Arial;
+            background:#f5f5f5;
+            padding:20px;
+        }
+
+        .card{
+            background:white;
+            padding:20px;
+            border-radius:10px;
+            margin-bottom:20px;
+        }
+
+        .btn{
+            padding:10px 15px;
+            border-radius:5px;
+            text-decoration:none;
+            color:white;
+            display:inline-block;
+            margin-right:10px;
+        }
+
+        .green{ background:green; }
+        .blue{ background:#007bff; }
+        .red{ background:red; }
+        .orange{ background:orange; }
+
+        .grid{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+            gap:15px;
+        }
+
+        img{
+            width:100%;
+            height:180px;
+            object-fit:cover;
+        }
+    </style>
 </head>
 
-<body style="font-family:Arial; background:#f5f5f5; padding:20px;">
+<body>
 
-<h2>Welcome <?= htmlspecialchars($seller["name"] ?? "Seller") ?></h2>
+<div class="card">
 
-<p>Email: <?= htmlspecialchars($seller["email"]) ?></p>
+    <h2>Welcome <?= htmlspecialchars($seller["name"]) ?></h2>
+    <p>Email: <?= htmlspecialchars($seller["email"]) ?></p>
 
-<!-- ACTION BUTTONS -->
-<div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap;">
-
-    <a href="seller-upload-product.php"
-       style="background:green; color:white; padding:10px 15px; text-decoration:none; border-radius:5px;">
-        ➕ Upload Product
-    </a>
-
-    <a href="seller-withdraw.php"
-       style="background:#007bff; color:white; padding:10px 15px; text-decoration:none; border-radius:5px;">
-        💰 Withdraw
-    </a>
-
-    <a href="logout.php"
-       style="background:red; color:white; padding:10px 15px; text-decoration:none; border-radius:5px;">
-        Logout
-    </a>
+    <a href="seller-upload-product.php" class="btn green">➕ Upload Product</a>
+    <a href="seller-withdraw.php" class="btn blue">💰 Withdraw</a>
+    <a href="admin/logout.php" class="btn red">Logout</a>
 
 </div>
 
 <!-- PRODUCTS -->
-<h3>Your Products</h3>
+<div class="card">
+    <h3>Your Products</h3>
 
-<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:20px;">
+    <div class="grid">
 
-<?php foreach ($products as $p): ?>
+        <?php foreach ($products as $p): ?>
 
-<div style="background:white; padding:15px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1);">
+        <div class="card">
 
-    <img src="<?= htmlspecialchars($p["image_url"]) ?>"
-         style="width:100%; height:180px; object-fit:cover; border-radius:10px;"
-         onerror="this.src='https://via.placeholder.com/300'">
+            <img src="<?= htmlspecialchars($p["image_url"]) ?>"
+                 onerror="this.src='https://via.placeholder.com/300'">
 
-    <h3><?= htmlspecialchars($p["name"]) ?></h3>
+            <h3><?= htmlspecialchars($p["name"]) ?></h3>
+            <p><?= htmlspecialchars($p["description"]) ?></p>
+            <b>₦<?= number_format((float)$p["price"]) ?></b>
 
-    <p><?= htmlspecialchars($p["description"]) ?></p>
+            <div style="margin-top:10px;">
+                <a href="edit-product.php?id=<?= $p["id"] ?>" class="btn orange">Edit</a>
 
-    <h3>₦<?= number_format((float)$p["price"]) ?></h3>
+                <form method="POST" action="delete-product.php" style="display:inline;">
+                    <input type="hidden" name="id" value="<?= $p["id"] ?>">
+                    <button class="btn red" type="submit">Delete</button>
+                </form>
+            </div>
 
-    <p><strong>Category:</strong> <?= htmlspecialchars($p["category"] ?? "N/A") ?></p>
+        </div>
 
-    <!-- ACTIONS -->
-    <div style="display:flex; gap:10px; margin-top:10px;">
-
-        <a href="edit-product.php?id=<?= $p["id"] ?>"
-           style="background:orange; color:white; padding:8px 12px; text-decoration:none; border-radius:5px;">
-            Edit
-        </a>
-
-        <form method="POST" action="delete.php"
-              onsubmit="return confirm('Delete this product?');">
-
-            <input type="hidden" name="id" value="<?= $p["id"] ?>">
-
-            <button type="submit"
-                style="background:red; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer;">
-                Delete
-            </button>
-
-        </form>
+        <?php endforeach; ?>
 
     </div>
-
 </div>
 
-<?php endforeach; ?>
+<!-- ORDERS -->
+<div class="card">
+    <h3>Recent Orders</h3>
+
+    <?php if (empty($orders)): ?>
+        <p>No orders yet.</p>
+    <?php endif; ?>
+
+    <?php foreach ($orders as $o): ?>
+
+        <div class="card">
+            <p><b>Product:</b> <?= htmlspecialchars($o["product_name"]) ?></p>
+            <p><b>Amount:</b> ₦<?= number_format((float)$o["amount"]) ?></p>
+            <p><b>Status:</b> <?= htmlspecialchars($o["status"]) ?></p>
+        </div>
+
+    <?php endforeach; ?>
 
 </div>
 
