@@ -6,35 +6,54 @@ $error = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $email = trim($_POST["email"]);
-    $password = $_POST["password"];
+    $email = trim($_POST["email"] ?? "");
+    $password = $_POST["password"] ?? "";
 
-    if (empty($email) || empty($password)) {
+    if ($email === "" || $password === "") {
         $error = "Please fill all fields";
     } else {
 
-        // FETCH USER
+        /*
+        |--------------------------------------------------------------------------
+        | FETCH USER
+        |--------------------------------------------------------------------------
+        */
+
         $stmt = $pdo->prepare("
             SELECT * FROM users
             WHERE email = :email
             LIMIT 1
         ");
+
         $stmt->execute([":email" => $email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // VALIDATE USER
-        if (!$user) {
-            $error = "Invalid email or password";
-        } elseif (!password_verify($password, $user["password"])) {
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDATION
+        |--------------------------------------------------------------------------
+        */
+
+        if (!$user || !password_verify($password, $user["password"])) {
             $error = "Invalid email or password";
         } else {
 
-            // SESSION
+            /*
+            |--------------------------------------------------------------------------
+            | SESSION SETUP (UNIFIED)
+            |--------------------------------------------------------------------------
+            */
+
             $_SESSION["user_id"] = $user["id"];
             $_SESSION["user_email"] = $user["email"];
             $_SESSION["user_role"] = $user["role"];
 
-            // ROLE ROUTING
+            /*
+            |--------------------------------------------------------------------------
+            | ROLE ROUTING
+            |--------------------------------------------------------------------------
+            */
+
             if ($user["role"] === "admin") {
                 header("Location: admin/dashboard.php");
                 exit;
@@ -45,7 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 exit;
             }
 
-            // default = buyer
+            // default buyer
             header("Location: buyer-dashboard.php");
             exit;
         }
@@ -57,6 +76,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <html>
 <head>
     <title>Login - Global Trade Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <style>
         body{
             font-family:Arial;
@@ -103,7 +124,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     <h2 style="text-align:center;">Login</h2>
 
-    <?php if($error): ?>
+    <?php if ($error): ?>
         <p class="error"><?= htmlspecialchars($error) ?></p>
     <?php endif; ?>
 

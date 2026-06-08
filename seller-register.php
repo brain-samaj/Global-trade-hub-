@@ -18,6 +18,7 @@ $stmt = $pdo->prepare("
     SELECT * FROM seller_payments
     WHERE reference = :ref AND status = 'paid'
 ");
+
 $stmt->execute([":ref" => $ref]);
 $payment = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -37,10 +38,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     try {
 
-        $full_name = trim($_POST["full_name"]);
-        $phone = trim($_POST["phone"]);
-        $location = trim($_POST["location"]);
-        $nin = trim($_POST["nin"]);
+        $full_name = trim($_POST["full_name"] ?? "");
+        $phone     = trim($_POST["phone"] ?? "");
+        $location  = trim($_POST["location"] ?? "");
+        $nin       = trim($_POST["nin"] ?? "");
 
         if ($full_name === "" || $phone === "" || $location === "" || $nin === "") {
             throw new Exception("All fields are required");
@@ -55,8 +56,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         */
 
         $check = $pdo->prepare("
-            SELECT id FROM users WHERE email = :email
+            SELECT id FROM users WHERE email = :email LIMIT 1
         ");
+
         $check->execute([":email" => $email]);
 
         if ($check->fetch()) {
@@ -65,7 +67,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         /*
         |--------------------------------------------------------------------------
-        | CREATE SELLER USER (NO status column used)
+        | CREATE SELLER USER (NO status COLUMN)
         |--------------------------------------------------------------------------
         */
 
@@ -77,7 +79,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt->execute([
             ":name" => $full_name,
             ":email" => $email,
-            ":password" => password_hash("temp1234", PASSWORD_BCRYPT),
+            ":password" => password_hash("temp123", PASSWORD_BCRYPT),
             ":role" => "seller"
         ]);
 
@@ -100,6 +102,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <html>
 <head>
     <title>Seller Registration</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
 <body style="font-family:Arial; background:#f5f5f5; padding:20px;">
@@ -125,11 +128,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <input type="text" name="location" placeholder="Location" required>
     <br><br>
 
-    <input type="text" name="nin" placeholder="NIN" required>
+    <input type="text" name="nin" placeholder="NIN Number" required>
     <br><br>
 
     <button type="submit"
-        style="width:100%; padding:12px; background:green; color:white; border:none; cursor:pointer;">
+        style="width:100%; padding:12px; background:#0d47a1; color:white; border:none; cursor:pointer;">
         Continue
     </button>
 

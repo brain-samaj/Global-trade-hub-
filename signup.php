@@ -43,7 +43,7 @@
 
     <a href="buyer-signup.php">Sign up as Buyer</a>
 
-    <a href="seller-register.php">Sign up as Seller</a>
+    <a href="become-seller.php">Sign up as Seller</a>
 
 </div>
 
