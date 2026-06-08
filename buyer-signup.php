@@ -23,8 +23,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         |--------------------------------------------------------------------------
         */
 
-        $check = $pdo->prepare("SELECT id FROM users WHERE email = ?");
-        $check->execute([$email]);
+        $check = $pdo->prepare("
+            SELECT id FROM users WHERE email = :email
+        ");
+        $check->execute([":email" => $email]);
 
         if ($check->fetch()) {
             throw new Exception("Email already registered");
@@ -32,30 +34,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         /*
         |--------------------------------------------------------------------------
-        | CREATE BUYER ACCOUNT
+        | CREATE BUYER ACCOUNT (NO status COLUMN)
         |--------------------------------------------------------------------------
         */
 
-        $hashed = password_hash($password, PASSWORD_DEFAULT);
+        $hashed = password_hash($password, PASSWORD_BCRYPT);
 
         $stmt = $pdo->prepare("
-            INSERT INTO users
-            (name, email, password, role, status)
-            VALUES
-            (:name, :email, :password, :role, :status)
+            INSERT INTO users (name, email, password, role)
+            VALUES (:name, :email, :password, :role)
         ");
 
         $stmt->execute([
             ":name" => $name,
             ":email" => $email,
             ":password" => $hashed,
-            ":role" => "buyer",
-            ":status" => "active"
+            ":role" => "buyer"
         ]);
 
         /*
         |--------------------------------------------------------------------------
-        | AUTO LOGIN (OPTIONAL)
+        | AUTO LOGIN
         |--------------------------------------------------------------------------
         */
 
@@ -82,27 +81,29 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <h2>Create Buyer Account</h2>
 
 <?php if ($message): ?>
-    <p style="color:red;"><?= htmlspecialchars($message) ?></p>
+    <p style="color:red;">
+        <?= htmlspecialchars($message) ?>
+    </p>
 <?php endif; ?>
 
-<div style="background:white; padding:20px; max-width:400px; border-radius:10px;">
+<div style="background:white; padding:20px; max-width:400px; margin:auto; border-radius:10px;">
 
 <form method="POST">
 
-    <input type="text" name="name" placeholder="Full Name" required style="width:100%; padding:10px;">
+    <input type="text" name="name" placeholder="Full Name" required>
     <br><br>
 
-    <input type="email" name="email" placeholder="Email Address" required style="width:100%; padding:10px;">
+    <input type="email" name="email" placeholder="Email Address" required>
     <br><br>
 
-    <input type="text" name="phone" placeholder="Phone Number" required style="width:100%; padding:10px;">
+    <input type="text" name="phone" placeholder="Phone Number" required>
     <br><br>
 
-    <input type="password" name="password" placeholder="Password" required style="width:100%; padding:10px;">
+    <input type="password" name="password" placeholder="Password" required>
     <br><br>
 
     <button type="submit"
-        style="width:100%; padding:12px; background:#0d47a1; color:white; border:none;">
+        style="width:100%; padding:12px; background:#0d47a1; color:white; border:none; cursor:pointer;">
         Create Account
     </button>
 

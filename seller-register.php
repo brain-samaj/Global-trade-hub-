@@ -1,26 +1,4 @@
 <?php
-require "config/db.php";
-
-$ref = $_GET["ref"] ?? null;
-
-if (!$ref) {
-    die("Invalid access");
-}
-
-// check payment is valid
-$stmt = $pdo->prepare("
-    SELECT * FROM seller_payments
-    WHERE reference = :ref AND status = 'paid'
-");
-$stmt->execute([":ref" => $ref]);
-$payment = $stmt->fetch();
-
-if (!$payment) {
-    die("Payment not verified");
-}
-
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-<?php
 session_start();
 require "config/db.php";
 
@@ -41,7 +19,7 @@ $stmt = $pdo->prepare("
     WHERE reference = :ref AND status = 'paid'
 ");
 $stmt->execute([":ref" => $ref]);
-$payment = $stmt->fetch();
+$payment = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$payment) {
     die("Payment not verified");
@@ -72,12 +50,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         /*
         |--------------------------------------------------------------------------
-        | CHECK IF USER EXISTS
+        | CHECK IF USER ALREADY EXISTS
         |--------------------------------------------------------------------------
         */
 
-        $check = $pdo->prepare("SELECT id FROM users WHERE email = ?");
-        $check->execute([$email]);
+        $check = $pdo->prepare("
+            SELECT id FROM users WHERE email = :email
+        ");
+        $check->execute([":email" => $email]);
 
         if ($check->fetch()) {
             throw new Exception("Account already exists");
@@ -85,33 +65,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         /*
         |--------------------------------------------------------------------------
-        | CREATE SELLER USER (PENDING)
+        | CREATE SELLER USER (NO status column used)
         |--------------------------------------------------------------------------
         */
 
         $stmt = $pdo->prepare("
-            INSERT INTO users
-            (name, email, password, role, status)
-            VALUES
-            (:name, :email, :password, :role, :status)
+            INSERT INTO users (name, email, password, role)
+            VALUES (:name, :email, :password, :role)
         ");
 
         $stmt->execute([
             ":name" => $full_name,
             ":email" => $email,
-            ":password" => password_hash("temp12345", PASSWORD_DEFAULT),
-            ":role" => "seller",
-            ":status" => "pending"
+            ":password" => password_hash("temp1234", PASSWORD_BCRYPT),
+            ":role" => "seller"
         ]);
 
         /*
         |--------------------------------------------------------------------------
-        | STORE EXTRA VERIFICATION DATA (OPTIONAL EXTENSION)
+        | REDIRECT TO PASSWORD SETUP
         |--------------------------------------------------------------------------
-        | If you want, we can later move this into a seller_profiles table
         */
-
-        $message = "Registration successful! Proceed to set password.";
 
         header("Location: seller-password.php?email=" . urlencode($email));
         exit;
@@ -133,27 +107,29 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <h2>Seller Registration</h2>
 
 <?php if ($message): ?>
-    <p style="color:red;"><?= htmlspecialchars($message) ?></p>
+    <p style="color:red;">
+        <?= htmlspecialchars($message) ?>
+    </p>
 <?php endif; ?>
 
-<div style="background:white; padding:20px; max-width:400px; border-radius:10px;">
+<div style="background:white; padding:20px; max-width:400px; margin:auto; border-radius:10px;">
 
 <form method="POST">
 
-    <input type="text" name="full_name" placeholder="Full Name" required style="width:100%; padding:10px;">
+    <input type="text" name="full_name" placeholder="Full Name" required>
     <br><br>
 
-    <input type="text" name="phone" placeholder="Phone Number" required style="width:100%; padding:10px;">
+    <input type="text" name="phone" placeholder="Phone Number" required>
     <br><br>
 
-    <input type="text" name="location" placeholder="Business Location" required style="width:100%; padding:10px;">
+    <input type="text" name="location" placeholder="Location" required>
     <br><br>
 
-    <input type="text" name="nin" placeholder="NIN Verification" required style="width:100%; padding:10px;">
+    <input type="text" name="nin" placeholder="NIN" required>
     <br><br>
 
     <button type="submit"
-        style="width:100%; padding:12px; background:green; color:white; border:none;">
+        style="width:100%; padding:12px; background:green; color:white; border:none; cursor:pointer;">
         Continue
     </button>
 
