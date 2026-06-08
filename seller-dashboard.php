@@ -107,12 +107,12 @@ $products = $stmt->fetchAll();
     <!-- ACTIONS -->
     <div style="display:flex; gap:10px; margin-top:10px;">
 
-        <a href="seller-edit-product.php?id=<?= $p["id"] ?>"
+        <a href="edit-product.php?id=<?= $p["id"] ?>"
            style="background:orange; color:white; padding:8px 12px; text-decoration:none; border-radius:5px;">
             Edit
         </a>
 
-        <form method="POST" action="seller-delete-product.php"
+        <form method="POST" action="delete-product.php"
               onsubmit="return confirm('Delete this product?');">
 
             <input type="hidden" name="id" value="<?= $p["id"] ?>">
