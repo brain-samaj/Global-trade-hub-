@@ -1,11 +1,13 @@
 <?php
 session_start();
+
 require "config/db.php";
+require "config/cloudinary.php";
 
 /*
-|--------------------------------------------------------------------------
-| AUTH CHECK
-|--------------------------------------------------------------------------
+|--------------------------------------------------
+| SELLER AUTH GUARD
+|--------------------------------------------------
 */
 
 if (!isset($_SESSION["user_id"])) {
@@ -18,86 +20,142 @@ if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "seller") {
 }
 
 $seller_id = $_SESSION["user_id"];
+
+/*
+|--------------------------------------------------
+| VERIFY SELLER EXISTS
+|--------------------------------------------------
+*/
+
+$checkSeller = $pdo->prepare("
+    SELECT id, name
+    FROM users
+    WHERE id = ? AND role = 'seller'
+");
+
+$checkSeller->execute([$seller_id]);
+
+$seller = $checkSeller->fetch(PDO::FETCH_ASSOC);
+
+if (!$seller) {
+    exit("Seller account not found.");
+}
+
 $message = "";
 
 /*
-|--------------------------------------------------------------------------
+|--------------------------------------------------
 | HANDLE PRODUCT UPLOAD
-|--------------------------------------------------------------------------
+|--------------------------------------------------
 */
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     try {
 
-        $name = trim($_POST["name"]);
-        $price = trim($_POST["price"]);
-        $description = trim($_POST["description"]);
-        $category = trim($_POST["category"]);
-
-        if ($name === "" || $price === "" || $description === "" || $category === "") {
-            throw new Exception("All fields are required");
+        if (
+            empty($_POST["name"]) ||
+            empty($_POST["price"]) ||
+            empty($_POST["description"]) ||
+            empty($_POST["category"])
+        ) {
+            throw new Exception("All required fields are needed.");
         }
 
-        if (!isset($_FILES["image"]) || $_FILES["image"]["error"] !== 0) {
-            throw new Exception("Image upload failed");
+        if (
+            !isset($_FILES["image"]) ||
+            $_FILES["image"]["error"] !== UPLOAD_ERR_OK
+        ) {
+            throw new Exception("Image upload failed.");
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | IMAGE UPLOAD (LOCAL STORAGE)
-        |--------------------------------------------------------------------------
+        |------------------------------------------
+        | UPLOAD IMAGE TO CLOUDINARY
+        |------------------------------------------
         */
 
-        $allowed = ["jpg", "jpeg", "png", "webp"];
+        $uploadResult = $cloudinary->uploadApi()->upload(
+            $_FILES["image"]["tmp_name"],
+            [
+                "folder" => "global_trade_products"
+            ]
+        );
 
-        $fileTmp = $_FILES["image"]["tmp_name"];
-        $fileName = $_FILES["image"]["name"];
-        $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-
-        if (!in_array($fileExt, $allowed)) {
-            throw new Exception("Only JPG, PNG, WEBP allowed");
+        if (!isset($uploadResult["secure_url"])) {
+            throw new Exception("Cloudinary upload failed.");
         }
 
-        $uploadDir = "uploads/";
-
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
-        }
-
-        $newFileName = time() . "_" . rand(1000,9999) . "." . $fileExt;
-        $filePath = $uploadDir . $newFileName;
-
-        if (!move_uploaded_file($fileTmp, $filePath)) {
-            throw new Exception("Failed to save image");
-        }
+        $imageUrl = $uploadResult["secure_url"];
 
         /*
-        |--------------------------------------------------------------------------
-        | SAVE PRODUCT TO DB
-        |--------------------------------------------------------------------------
+        |------------------------------------------
+        | CLEAN PRICE
+        |------------------------------------------
+        */
+
+        $price = preg_replace(
+            '/[^0-9]/',
+            '',
+            $_POST["price"]
+        );
+
+        /*
+        |------------------------------------------
+        | OPTIONAL FIELDS
+        |------------------------------------------
+        */
+
+        $subcategory = trim($_POST["subcategory"] ?? "");
+        $subSubcategory = trim($_POST["sub_subcategory"] ?? "");
+
+        /*
+        |------------------------------------------
+        | INSERT PRODUCT
+        |------------------------------------------
         */
 
         $stmt = $pdo->prepare("
-            INSERT INTO products
-            (name, description, price, image_url, category, seller_id)
-            VALUES
-            (:name, :description, :price, :image_url, :category, :seller_id)
+            INSERT INTO products (
+                name,
+                description,
+                price,
+                image_url,
+                category,
+                subcategory,
+                sub_subcategory,
+                seller_id
+            )
+            VALUES (
+                :name,
+                :description,
+                :price,
+                :image_url,
+                :category,
+                :subcategory,
+                :sub_subcategory,
+                :seller_id
+            )
         ");
 
         $stmt->execute([
-            ":name" => $name,
-            ":description" => $description,
+            ":name" => trim($_POST["name"]),
+            ":description" => trim($_POST["description"]),
             ":price" => $price,
-            ":image_url" => $filePath,
-            ":category" => $category,
+            ":image_url" => $imageUrl,
+            ":category" => trim($_POST["category"]),
+            ":subcategory" => $subcategory,
+            ":sub_subcategory" => $subSubcategory,
             ":seller_id" => $seller_id
         ]);
 
-        $message = "Product uploaded successfully!";
+        header("Location: seller-dashboard.php?uploaded=1");
+        exit();
 
     } catch (Exception $e) {
-        $message = $e->getMessage();
+
+        $message = "ERROR: " . $e->getMessage();
+
     }
 }
 ?>
@@ -105,41 +163,148 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Upload Product</title>
+    <title>Seller Upload Product</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+
+        body{
+            font-family:Arial;
+            background:#f4f4f4;
+            padding:20px;
+        }
+
+        .container{
+            max-width:700px;
+            margin:auto;
+            background:white;
+            padding:25px;
+            border-radius:10px;
+            box-shadow:0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h2{
+            text-align:center;
+        }
+
+        input,
+        textarea,
+        select{
+            width:100%;
+            padding:12px;
+            margin-bottom:15px;
+            box-sizing:border-box;
+        }
+
+        textarea{
+            height:120px;
+        }
+
+        button{
+            width:100%;
+            background:green;
+            color:white;
+            border:none;
+            padding:12px;
+            border-radius:5px;
+            cursor:pointer;
+        }
+
+        .message{
+            background:#f0f0f0;
+            padding:12px;
+            border-radius:5px;
+            margin-bottom:20px;
+        }
+
+        .actions{
+            margin-bottom:20px;
+        }
+
+        .actions a{
+            text-decoration:none;
+            color:white;
+            background:#0d47a1;
+            padding:10px 15px;
+            border-radius:5px;
+        }
+
+    </style>
 </head>
 
-<body style="font-family:Arial; background:#f5f5f5; padding:20px;">
+<body>
 
-<h2>📦 Upload New Product</h2>
+<div class="container">
 
-<?php if ($message): ?>
-    <p style="padding:10px; background:#dff0d8; border-radius:5px;">
-        <?= htmlspecialchars($message) ?>
-    </p>
-<?php endif; ?>
+    <h2>Upload Product</h2>
 
-<form method="POST" enctype="multipart/form-data" style="background:white; padding:20px; border-radius:10px;">
+    <div class="actions">
+        <a href="seller-dashboard.php">← Back to Dashboard</a>
+    </div>
 
-    <input type="text" name="name" placeholder="Product Name" required><br><br>
+    <?php if ($message): ?>
+        <div class="message">
+            <?= htmlspecialchars($message) ?>
+        </div>
+    <?php endif; ?>
 
-    <input type="number" name="price" placeholder="Price" required><br><br>
+    <form method="POST" enctype="multipart/form-data">
 
-    <textarea name="description" placeholder="Description" required></textarea><br><br>
+        <input
+            type="text"
+            name="name"
+            placeholder="Product Name"
+            required
+        >
 
-    <select name="category" required>
-        <option value="Clothing">Clothing</option>
-        <option value="Food">Food</option>
-        <option value="Electronics">Electronics</option>
-        <option value="Services">Services</option>
-    </select><br><br>
+        <input
+            type="text"
+            name="price"
+            placeholder="Price"
+            required
+        >
 
-    <input type="file" name="image" required><br><br>
+        <textarea
+            name="description"
+            placeholder="Product Description"
+            required
+        ></textarea>
 
-    <button type="submit" style="padding:10px; background:green; color:white;">
-        Upload Product
-    </button>
+        <select name="category" required>
+            <option value="">Select Category</option>
+            <option value="Clothing">Clothing</option>
+            <option value="Food & Beverages">Food & Beverages</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Services">Services</option>
+        </select>
 
-</form>
+        <input
+            type="text"
+            name="subcategory"
+            placeholder="Subcategory (optional)"
+        >
+
+        <input
+            type="text"
+            name="sub_subcategory"
+            placeholder="Type (optional)"
+        >
+
+        <input
+            type="file"
+            name="image"
+            accept="image/*"
+            required
+        >
+
+        <button type="submit">
+            Upload Product
+        </button>
+
+    </form>
+
+</div>
 
 </body>
 </html>

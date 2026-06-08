@@ -121,9 +121,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             ":sub_subcategory" => $_POST["sub_subcategory"]
         ]);
 
-        header("Location: upload.php?success=1");
-        exit();
-
+exit();header("Location: dashboard.php?uploaded=1");
+exit();
     } catch (Exception $e) {
 
         $message = "ERROR: " . $e->getMessage();
