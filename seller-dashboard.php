@@ -112,7 +112,7 @@ $products = $stmt->fetchAll();
             Edit
         </a>
 
-        <form method="POST" action="delete-product.php"
+        <form method="POST" action="delete.php"
               onsubmit="return confirm('Delete this product?');">
 
             <input type="hidden" name="id" value="<?= $p["id"] ?>">
