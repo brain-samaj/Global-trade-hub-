@@ -1,9 +1,6 @@
-<?php
 session_start();
 
-function checkAdmin() {
-    if (!isset($_SESSION['admin'])) {
-        header("Location: /admin/login.php");
-        exit;
-    }
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
 }
