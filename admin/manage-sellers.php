@@ -17,24 +17,31 @@ $stmt = $pdo->query("
         u.id AS user_id,
         u.name,
         u.email,
-        u.phone,
-        u.country,
-        u.city,
         u.role,
         u.created_at,
+
+        COALESCE(s.phone, '') AS phone,
+        COALESCE(s.country, '') AS country,
+        COALESCE(s.city, '') AS city,
+
         COALESCE(s.status, 'pending') AS status,
         COALESCE(s.wallet_balance, 0) AS wallet_balance,
         COALESCE(s.total_earned, 0) AS total_earned,
         COALESCE(s.total_withdrawn, 0) AS total_withdrawn,
+
         (
             SELECT COUNT(*)
             FROM products p
             WHERE p.seller_id = u.id
         ) AS total_products
+
     FROM users u
+
     LEFT JOIN sellers s
         ON s.user_id = u.id
+
     WHERE u.role = 'seller'
+
     ORDER BY u.id DESC
 ");
 
