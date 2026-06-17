@@ -14,20 +14,11 @@ checkAdmin();
 
 $stmt = $pdo->query("
     SELECT
-        u.id AS user_id,
+        s.*,
         u.name,
         u.email,
-        u.role,
-        u.created_at,
-
-        COALESCE(s.phone, '') AS phone,
-        COALESCE(s.country, '') AS country,
-        COALESCE(s.city, '') AS city,
-
-        COALESCE(s.status, 'pending') AS status,
-        COALESCE(s.wallet_balance, 0) AS wallet_balance,
-        COALESCE(s.total_earned, 0) AS total_earned,
-        COALESCE(s.total_withdrawn, 0) AS total_withdrawn,
+        u.country,
+        u.city,
 
         (
             SELECT COUNT(*)
@@ -35,14 +26,12 @@ $stmt = $pdo->query("
             WHERE p.seller_id = u.id
         ) AS total_products
 
-    FROM users u
+    FROM sellers s
 
-    LEFT JOIN sellers s
+    LEFT JOIN users u
         ON s.user_id = u.id
 
-    WHERE u.role = 'seller'
-
-    ORDER BY u.id DESC
+    ORDER BY s.id DESC
 ");
 
 $sellers = $stmt->fetchAll(PDO::FETCH_ASSOC);
