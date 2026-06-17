@@ -11,6 +11,7 @@ require "config/db.php";
 ?>
 
 <?php include "includes/header.php"; ?>
+<?php include "includes/navbar.php"; ?>
 
 <!-- HERO SECTION -->
 <section class="hero" style="text-align:center; padding:40px;">
