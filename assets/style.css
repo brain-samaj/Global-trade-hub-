@@ -1,184 +1,270 @@
-/* =========================
-   GLOBAL RESET
-========================= */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
 }
 
-body {
-    font-family: Arial, sans-serif;
-    background: #f4f6f8;
-    color: #222;
+body{
+font-family:Arial,sans-serif;
+background:#f4f6f8;
+color:#222;
 }
 
-/* =========================
-   HEADER / NAVBAR (GLOBAL)
-========================= */
-header {
-    background: linear-gradient(135deg, #0a1f44, #0d47a1);
-    color: white;
-    padding: 20px;
-    text-align: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+/* ======================
+HEADER
+====================== */
+
+.header{
+background:linear-gradient(135deg,#021633,#001d4a);
+color:white;
+padding:15px 20px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+position:sticky;
+top:0;
+z-index:1000;
+box-shadow:0 2px 10px rgba(0,0,0,.3);
 }
 
-nav {
-    margin-top: 10px;
+.menu-btn{
+background:none;
+border:none;
+color:#00e5ff;
+font-size:28px;
+cursor:pointer;
 }
 
-nav a {
-    color: white;
-    margin: 0 10px;
-    text-decoration: none;
-    font-weight: bold;
+.logo h2{
+color:#00e5ff;
+font-size:32px;
+font-weight:bold;
 }
 
-nav a:hover {
-    color: #00c2ff;
+.desktop-nav{
+display:flex;
+gap:25px;
 }
 
-/* =========================
-   HERO SECTION
-========================= */
-.hero {
-    padding: 70px 20px;
-    text-align: center;
-    background: white;
+.desktop-nav a{
+color:white;
+text-decoration:none;
+font-weight:bold;
 }
 
-.hero h1 {
-    font-size: 42px;
-    margin-bottom: 10px;
+.desktop-nav a:hover{
+color:#00e5ff;
 }
 
-.hero p {
-    color: #555;
+.nav-icons{
+display:flex;
+gap:15px;
 }
 
-/* =========================
-   PRODUCT GRID
-========================= */
-.products {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
-    padding: 20px;
+.nav-icons a{
+color:white;
+font-size:22px;
 }
 
-/* PRODUCT CARD */
-.card {
-    background: white;
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
-    transition: 0.3s;
+/* ======================
+SIDEBAR
+====================== */
+
+.sidebar{
+position:fixed;
+top:0;
+left:-320px;
+width:300px;
+height:100%;
+background:#021633;
+z-index:2000;
+transition:.3s;
+overflow:auto;
 }
 
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+.sidebar-top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:25px;
 }
 
-.card img {
-    width: 100%;
-    border-radius: 10px;
+.sidebar-top h2{
+color:#00e5ff;
 }
 
-/* =========================
-   BUTTONS
-========================= */
-.btn {
-    display: inline-block;
-    padding: 10px 15px;
-    background: #007BFF;
-    color: white;
-    text-decoration: none;
-    margin-top: 10px;
-    border-radius: 6px;
-    transition: 0.2s;
+.sidebar-top button{
+background:none;
+border:none;
+color:white;
+font-size:30px;
+cursor:pointer;
 }
 
-.btn:hover {
-    background: #0056b3;
+.sidebar a{
+display:block;
+color:white;
+text-decoration:none;
+padding:20px 25px;
+border-top:1px solid rgba(255,255,255,.08);
+font-size:18px;
 }
 
-/* =========================
-   FOOTER
-========================= */
-footer {
-    text-align: center;
-    padding: 20px;
-    background: #0a1f44;
-    color: white;
-    margin-top: 40px;
+.sidebar a:hover{
+background:#06234d;
 }
 
-/* =========================
-   DASHBOARD GRID
-========================= */
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin: 20px 0;
+.overlay{
+display:none;
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.6);
+z-index:1500;
 }
 
-/* STATS BOX */
-.stat {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    text-align: center;
+/* ======================
+HERO
+====================== */
+
+.hero{
+background:white;
+text-align:center;
+padding:80px 20px;
 }
 
-.stat h2 {
-    margin-top: 10px;
-    font-size: 28px;
+.hero h1{
+font-size:55px;
+margin-bottom:15px;
+color:#021633;
 }
 
-/* =========================
-   BADGES
-========================= */
-.badge {
-    display: inline-block;
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    background: #e0e0e0;
+.hero p{
+font-size:22px;
+color:#666;
 }
 
-.badge.success {
-    background: #d4edda;
-    color: #155724;
+/* ======================
+BUTTONS
+====================== */
+
+.btn{
+display:inline-block;
+padding:12px 22px;
+margin:8px;
+background:#007bff;
+color:white;
+text-decoration:none;
+border-radius:8px;
+transition:.3s;
 }
 
-.badge.pending {
-    background: #fff3cd;
-    color: #856404;
+.btn:hover{
+background:#0056b3;
 }
 
-.badge.danger {
-    background: #f8d7da;
-    color: #721c24;
+/* ======================
+PRODUCTS
+====================== */
+
+.products{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:20px;
+padding:20px;
 }
 
-/* =========================
-   DASHBOARD BUTTONS
-========================= */
-.btn-dark {
-    background: #111;
-    color: white;
+.card{
+background:white;
+border-radius:12px;
+overflow:hidden;
+box-shadow:0 3px 12px rgba(0,0,0,.1);
 }
 
-.btn-green {
-    background: #28a745;
-    color: white;
+.card img{
+width:100%;
+height:220px;
+object-fit:cover;
 }
 
-.btn-red {
-    background: #dc3545;
-    color: white;
+.card h3{
+padding:10px;
+}
+
+.card p{
+padding:0 10px 10px;
+}
+
+/* ======================
+FOOTER
+====================== */
+
+footer{
+background:#021633;
+color:white;
+text-align:center;
+padding:35px 20px;
+margin-top:40px;
+}
+
+footer a{
+color:#00e5ff;
+text-decoration:none;
+}
+
+/* ======================
+DASHBOARD
+====================== */
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:20px;
+}
+
+.stat{
+background:white;
+border-radius:12px;
+padding:20px;
+text-align:center;
+box-shadow:0 2px 10px rgba(0,0,0,.08);
+}
+
+.badge{
+padding:5px 10px;
+border-radius:20px;
+}
+
+.badge.success{
+background:#d4edda;
+color:#155724;
+}
+
+.badge.pending{
+background:#fff3cd;
+color:#856404;
+}
+
+.badge.danger{
+background:#f8d7da;
+color:#721c24;
+}
+
+/* ======================
+MOBILE
+====================== */
+
+@media(max-width:768px){
+
+.desktop-nav{
+    display:none;
+}
+
+.hero h1{
+    font-size:42px;
+}
+
+.hero p{
+    font-size:18px;
+}
+
 }
