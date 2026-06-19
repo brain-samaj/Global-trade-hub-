@@ -7,9 +7,11 @@ session_start();
 <head>
     <meta charset="UTF-8">
     <title>Loading Global Trade Hub</title>
+
+    <!-- CSS -->
     <link rel="stylesheet" href="assets/style.css">
 
-    <!-- Font Awesome (optional but safe to keep) -->
+    <!-- Font Awesome (optional) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
@@ -33,7 +35,7 @@ session_start();
     </div>
 
     <!-- 🚢 SHIPS -->
-    <img src="assets/images/ship.png" class="ship ship1">
+    <img src="assets/images/ship.png" class="ship">
     <img src="assets/images/ship.png" class="ship ship2">
 
 </div>
@@ -48,7 +50,7 @@ session_start();
 <script>
     setTimeout(function () {
         window.location.replace("index.php");
-    }, 6000); // 6 seconds (adjust 5000–8000 if needed)
+    }, 6000);
 </script>
 
 </body>
