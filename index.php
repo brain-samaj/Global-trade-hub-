@@ -50,13 +50,15 @@ require "config/db.php";
             box-shadow:0 2px 8px rgba(0,0,0,0.1);
         ">
 
-<?php
-$image = $p['image'];
-?>
+    <img
+        src="<?= htmlspecialchars($p['image_url']>
+        style="
+            width:100%;
+            border-radius:10px;
+        "
+    >
+</a>
 
-<img src="<?= htmlspecialchars($image) ?>"
-     onerror="this.src='assets/images/default.png'"
-     style="width:100%; height:150px; object-fit:cover; border-radius:8px;">
             <h3><?= htmlspecialchars($p['name'] ?? 'No name') ?></h3>
 
             <p><?= htmlspecialchars($p['description'] ?? 'No description') ?></p>
