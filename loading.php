@@ -1,112 +1,55 @@
+<?php
+session_start();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Global Trade Hub</title>
+    <meta charset="UTF-8">
+    <title>Loading Global Trade Hub</title>
+    <link rel="stylesheet" href="assets/style.css">
 
-<style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial,sans-serif;
-}
-
-body{
-    background: url('assets/bg.png') no-repeat center center/cover;
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    text-align:center;
-    color:white;
-    position:relative;
-}
-
-/* dark overlay */
-.overlay{
-    position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.5);
-    z-index:1;
-}
-
-.container{
-    position:relative;
-    z-index:2;
-    animation: fadeIn 1s ease-in-out;
-}
-
-.logo{
-    width:120px;
-    height:120px;
-    border-radius:50%;
-    margin-bottom:20px;
-}
-
-h1{
-    font-size:36px;
-    margin-bottom:10px;
-}
-
-p{
-    font-size:18px;
-    margin-bottom:30px;
-}
-
-.loader{
-    width:50px;
-    height:50px;
-    border:5px solid rgba(255,255,255,0.3);
-    border-top:5px solid white;
-    border-radius:50%;
-    animation:spin 1s linear infinite;
-    margin:auto;
-}
-
-@keyframes spin{
-    100%{
-        transform:rotate(360deg);
-    }
-}
-
-@keyframes fadeIn{
-    from{
-        opacity:0;
-    }
-    to{
-        opacity:1;
-    }
-}
-</style>
-
-<script>
-setTimeout(function(){
-    window.location.href = "index.php";
-}, 4000);
-</script>
-
+    <!-- Font Awesome (optional but safe to keep) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
 <body>
 
-<div class="overlay"></div>
+<!-- 🌍 LOADING SCENE -->
+<div class="hero-background">
 
-<div class="container">
+    <!-- 🌍 GLOBE -->
+    <div class="globe-3d">
+        <div class="globe-core"></div>
+        <div class="globe-grid"></div>
+    </div>
 
-    <img src="assets/logo.png" class="logo" alt="Global Trade Hub Logo">
+    <!-- 🔗 TRADE ROUTES -->
+    <div class="trade-routes">
+        <div class="route route1"></div>
+        <div class="route route2"></div>
+        <div class="route route3"></div>
+        <div class="route route4"></div>
+    </div>
 
-    <h1>Global Trade Hub</h1>
-
-    <p>Connecting Buyers and Sellers Worldwide</p>
-
-    <div class="loader"></div>
+    <!-- 🚢 SHIPS -->
+    <img src="assets/images/ship.png" class="ship ship1">
+    <img src="assets/images/ship.png" class="ship ship2">
 
 </div>
+
+<!-- ⏳ LOADING TEXT -->
+<div class="loading-text">
+    <h2>Loading Global Trade Hub...</h2>
+    <p>Connecting global buyers and sellers...</p>
+</div>
+
+<!-- 🔁 AUTO REDIRECT -->
+<script>
+    setTimeout(function () {
+        window.location.replace("index.php");
+    }, 6000); // 4 seconds (adjust 5000–8000 if needed)
+</script>
 
 </body>
 </html>

@@ -16,20 +16,12 @@ require "config/db.php";
 <!-- 🌍 HERO BACKGROUND -->
 <div class="hero-background">
 
-    <div class="globe-3d">
-        <div class="globe-core"></div>
-        <div class="globe-grid"></div>
-    </div>
 
-    <img src="assets/images/ship.png" class="ship ship1">
-    <img src="assets/images/ship.png" class="ship ship2">
+<section class="hero" style="text-align:center;">
 
-</div>
-
-<!-- HERO CONTENT -->
-<section class="hero hero-content">
     <h1>Global Trade Hub</h1>
     <p>Connecting Buyers and Sellers Globally</p>
+
 </section>
 
 <!-- FEATURED PRODUCTS -->
@@ -61,9 +53,8 @@ require "config/db.php";
             box-shadow:0 2px 8px rgba(0,0,0,0.1);
         ">
 
-<img src="<?= htmlspecialchars($p['image'] ?? '') ?>"
-    style="width:100%; height:150px; object-fit:cover; border-radius:8px;">
-
+<img src="<?= htmlspecialchars($p['image'] ?? '') ?>" 
+     style="width:100%; height:150px; object-fit:cover; border-radius:8px;">
 <h3><?= htmlspecialchars($p['name'] ?? 'No name') ?></h3>
 
 <p><?= htmlspecialchars($p['description'] ?? 'No description') ?></p>
