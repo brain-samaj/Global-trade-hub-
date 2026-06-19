@@ -4,15 +4,15 @@
         <i class="fas fa-bars"></i>
     </button>
 
+<div class="logo">
+    <div class="logo-globe">
+        <span class="logo-text">GTH</span>
+    </div>
 <div class="nav-icons">
    <button id="themeToggle" class="theme-toggle">
     🌙
    </button>
 
-<div class="logo">
-    <div class="logo-globe">
-        <span class="logo-text">GTH</span>
-    </div>
 </div>
 
     <nav class="desktop-nav">
