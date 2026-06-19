@@ -26,12 +26,7 @@ require "config/db.php";
 
     <h2 style="text-align:center;">🔥 Featured Products</h2>
 
-    <div class="products" style="
-        display:grid;
-        grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));
-        gap:15px;
-        margin-top:20px;
-    ">
+    <div class="products">
 
         <?php
         $stmt = $pdo->query("
@@ -43,27 +38,34 @@ require "config/db.php";
         foreach ($stmt as $p):
         ?>
 
-        <div class="card" style="
-            background:white;
-            padding:10px;
-            border-radius:10px;
-            box-shadow:0 2px 8px rgba(0,0,0,0.1);
-        ">
+        <div class="card">
 
-    <img
-        src="<?= htmlspecialchars($p['image_url']>
-        style="
-            width:100%;
-            border-radius:10px;
-        "
-    >
-</a>
+            <img
+                src="<?=
+                    !empty($p['image_url'])
+                    ? htmlspecialchars($p['image_url'])
+                    : 'assets/default-product.png'
+                ?>"
+                style="
+                    width:100%;
+                    height:180px;
+                    object-fit:cover;
+                    border-radius:10px;
+                "
+                onerror="this.src='assets/default-product.png'"
+            >
 
-            <h3><?= htmlspecialchars($p['name'] ?? 'No name') ?></h3>
+            <h3>
+                <?= htmlspecialchars($p['name']) ?>
+            </h3>
 
-            <p><?= htmlspecialchars($p['description'] ?? 'No description') ?></p>
+            <p>
+                <?= htmlspecialchars($p['description']) ?>
+            </p>
 
-            <b>₦<?= number_format((int)($p['price'] ?? 0)) ?></b>
+            <b>
+                ₦<?= number_format((int)$p['price']) ?>
+            </b>
 
             <br><br>
 

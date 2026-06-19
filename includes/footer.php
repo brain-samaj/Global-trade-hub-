@@ -1,5 +1,34 @@
 <footer class="gth-footer"><div class="footer-stats">
 
+<script>
+
+const themeBtn =
+document.getElementById("themeToggle");
+
+if(localStorage.getItem("theme") === "dark"){
+    document.body.classList.add("dark-mode");
+}
+
+if(themeBtn){
+
+themeBtn.onclick = function(){
+
+    document.body.classList.toggle("dark-mode");
+
+    if(
+        document.body.classList.contains("dark-mode")
+    ){
+        localStorage.setItem("theme","dark");
+    }else{
+        localStorage.setItem("theme","light");
+    }
+
+};
+
+}
+
+</script>
+
     <div class="footer-stat">
         <i class="fas fa-users"></i>
         <h2>10,000+</h2>

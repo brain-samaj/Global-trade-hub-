@@ -4,9 +4,33 @@
     box-sizing:border-box;
 }
 
+:root{
+    --bg:#ffffff;
+    --card:#ffffff;
+    --text:#222222;
+    --text-light:#666666;
+    --primary:#021633;
+    --secondary:#001d4a;
+    --accent:#00e5ff;
+    --shadow:rgba(0,0,0,.10);
+}
+
+body.dark-mode{
+    --bg:#0f172a;
+    --card:#1e293b;
+    --text:#f8fafc;
+    --text-light:#cbd5e1;
+    --primary:#020617;
+    --secondary:#0f172a;
+    --accent:#00e5ff;
+    --shadow:rgba(255,255,255,.08);
+}
+
 body{
     font-family:Arial,sans-serif;
-    background:#f9fafc;
+    background:var(--bg);
+    color:var(--text);
+    transition:.3s ease;
 }
 
 /* ======================
@@ -14,7 +38,12 @@ HEADER
 ====================== */
 
 .header{
-    background:linear-gradient(135deg,#021633,#001d4a);
+    background:linear-gradient(
+        135deg,
+        var(--primary),
+        var(--secondary)
+    );
+
     color:white;
     padding:15px 20px;
     display:flex;
@@ -182,16 +211,17 @@ HERO (INDEX)
 .hero{
     text-align:center;
     padding:80px 20px;
+    background:var(--bg);
 }
 
 .hero h1{
     font-size:55px;
-    color:#021633;
+    color:var(--text);
 }
 
 .hero p{
     font-size:22px;
-    color:#666;
+    color:var(--text-light);
 }
 
 /* ======================
@@ -225,10 +255,15 @@ PRODUCTS
 }
 
 .card{
-    background:white;
-    border-radius:12px;
+    background:var(--card);
+    border-radius:15px;
     overflow:hidden;
-    box-shadow:0 3px 12px rgba(0,0,0,.1);
+    box-shadow:0 4px 15px var(--shadow);
+    transition:.3s;
+}
+
+.card:hover{
+    transform:translateY(-5px);
 }
 
 .card img{
@@ -237,20 +272,34 @@ PRODUCTS
     object-fit:cover;
 }
 
+.card h3{
+    padding:10px;
+}
+
+.card p{
+    padding:0 10px 10px;
+    color:var(--text-light);
+}
+
 /* ======================
 FOOTER (HORIZONTAL)
 ====================== */
 
 .gth-footer{
-    background:linear-gradient(180deg,#021633,#000d26);
+    background:linear-gradient(
+        180deg,
+        var(--primary),
+        #000d26
+    );
+
     padding:30px 20px;
     color:white;
     margin-top:50px;
 
     display:flex;
-    flex-direction:row;
     justify-content:space-around;
     flex-wrap:wrap;
+    gap:20px;
     text-align:center;
 }
 
@@ -492,4 +541,26 @@ MOBILE
     .globe-3d{width:240px;height:240px;}
 
     .ship{width:45px;}
+}
+
+/* =====================
+DARK MODE SUPPORT
+===================== */
+
+.theme-toggle{
+    background:none;
+    border:none;
+    color:white;
+    font-size:20px;
+    cursor:pointer;
+}
+
+/* Smooth transitions */
+body,
+.card,
+.hero,
+.gth-footer,
+.sidebar,
+.header{
+    transition:.3s ease;
 }
