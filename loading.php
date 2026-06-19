@@ -48,7 +48,7 @@ session_start();
 <script>
     setTimeout(function () {
         window.location.replace("index.php");
-    }, 6000); // 4 seconds (adjust 5000–8000 if needed)
+    }, 6000); // 6 seconds (adjust 5000–8000 if needed)
 </script>
 
 </body>
