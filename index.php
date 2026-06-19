@@ -61,20 +61,16 @@ require "config/db.php";
             box-shadow:0 2px 8px rgba(0,0,0,0.1);
         ">
 
-            <img src="<?= htmlspecialchars($p['image']) ?>" style="
-                width:100%;
-                height:150px;
-                object-fit:cover;
-                border-radius:8px;
-            ">
+<img src="<?= htmlspecialchars($p['image'] ?? '') ?>"
+    style="width:100%; height:150px; object-fit:cover; border-radius:8px;">
 
-            <h3><?= htmlspecialchars($p['name']) ?></h3>
+<h3><?= htmlspecialchars($p['name'] ?? 'No name') ?></h3>
 
-            <p><?= htmlspecialchars($p['description']) ?></p>
+<p><?= htmlspecialchars($p['description'] ?? 'No description') ?></p>
 
-            <b>₦<?= number_format((int)$p['price']) ?></b>
+<b>₦<?= number_format((int)($p['price'] ?? 0)) ?></b>
 
-            <br><br>
+<br><br>
 
             <a href="add-to-cart.php?id=<?= $p['id'] ?>" style="
                 display:inline-block;
