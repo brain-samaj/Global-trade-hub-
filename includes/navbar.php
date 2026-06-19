@@ -4,9 +4,11 @@
         <i class="fas fa-bars"></i>
     </button>
 
-    <div class="logo">
-        <h2>GLOBAL TRADE HUB</h1>
+<div class="logo">
+    <div class="logo-globe">
+        <span class="logo-text">GTH</span>
     </div>
+</div>
 
     <nav class="desktop-nav">
         <a href="index.php">Home</a>

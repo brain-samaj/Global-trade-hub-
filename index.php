@@ -13,22 +13,23 @@ require "config/db.php";
 <?php include "includes/header.php"; ?>
 <?php include "includes/navbar.php"; ?>
 
-<!-- HERO SECTION -->
-<section class="hero" style="text-align:center; padding:40px;">
+<!-- 🌍 HERO BACKGROUND -->
+<div class="hero-background">
 
-    <h1>Global Trade Hub</h1>
-
-    <p>Connecting Buyers and Sellers Globally</p>
-
-    <!-- AUTH BUTTONS -->
-    <div style="margin:20px 0;">
-        <a href="login.php" class="btn">Sign In</a>
-        <a href="signup.php" class="btn">Sign Up</a>
-        <a href="become-seller.php" class="btn">Become a Seller</a>
+    <div class="globe-3d">
+        <div class="globe-core"></div>
+        <div class="globe-grid"></div>
     </div>
 
-    <a href="products.php" class="btn">Explore Products</a>
+    <img src="assets/images/ship.png" class="ship ship1">
+    <img src="assets/images/ship.png" class="ship ship2">
 
+</div>
+
+<!-- HERO CONTENT -->
+<section class="hero hero-content">
+    <h1>Global Trade Hub</h1>
+    <p>Connecting Buyers and Sellers Globally</p>
 </section>
 
 <!-- FEATURED PRODUCTS -->
@@ -38,7 +39,7 @@ require "config/db.php";
 
     <div class="products" style="
         display:grid;
-        grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+        grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
         gap:15px;
         margin-top:20px;
     ">
@@ -60,7 +61,7 @@ require "config/db.php";
             box-shadow:0 2px 8px rgba(0,0,0,0.1);
         ">
 
-            <img src="<?= htmlspecialchars($p['image_url']) ?>" style="
+            <img src="<?= htmlspecialchars($p['image']) ?>" style="
                 width:100%;
                 height:150px;
                 object-fit:cover;
@@ -75,7 +76,6 @@ require "config/db.php";
 
             <br><br>
 
-            <!-- STEP 4 CART FLOW -->
             <a href="add-to-cart.php?id=<?= $p['id'] ?>" style="
                 display:inline-block;
                 padding:8px;

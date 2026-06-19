@@ -24,23 +24,6 @@
         <p>Secure Transactions</p>
     </div>
 
-</div>
-
-<div class="footer-contact">
-
-    <p>
-        WhatsApp:
-        <a href="https://wa.me/2349051773094">
-            Chat on WhatsApp
-        </a>
-    </p>
-
-    <p>
-        Email:
-        <a href="mailto:brainsamaj2004@gmail.com">
-            brainsamaj2004@gmail.com
-        </a>
-    </p>
 
     <p class="copyright">
         © <?= date("Y") ?> Global Trade Hub. All Rights Reserved.
