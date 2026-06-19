@@ -1,4 +1,6 @@
 <?php include "includes/header.php"; ?><?php require "config/db.php"; ?><h2 style="text-align:center;margin-top:20px;">
+<?php include "includes/navbar.php"; ?>
+
     Our Products
 </h2><!-- SEARCH BOX --><div style="
     text-align:center;

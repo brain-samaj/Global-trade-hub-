@@ -1,27 +1,52 @@
-<footer style="text-align:center; padding:25px; background:#111; color:white; margin-top:40px;">
+<footer class="gth-footer"><div class="footer-stats">
+
+    <div class="footer-stat">
+        <i class="fas fa-users"></i>
+        <h2>10,000+</h2>
+        <p>Verified Sellers</p>
+    </div>
+
+    <div class="footer-stat">
+        <i class="fas fa-box-open"></i>
+        <h2>50,000+</h2>
+        <p>Products Listed</p>
+    </div>
+
+    <div class="footer-stat">
+        <i class="fas fa-globe"></i>
+        <h2>150+</h2>
+        <p>Countries Connected</p>
+    </div>
+
+    <div class="footer-stat">
+        <i class="fas fa-shield-alt"></i>
+        <h2>100%</h2>
+        <p>Secure Transactions</p>
+    </div>
+
+</div>
+
+<div class="footer-contact">
 
     <p>
         WhatsApp:
-        <a href="https://wa.me/2349051773094"
-           style="color:#25D366; text-decoration:none;">
+        <a href="https://wa.me/2349051773094">
             Chat on WhatsApp
         </a>
     </p>
 
     <p>
         Email:
-        <a href="mailto:brainsamaj2004@gmail.com"
-           style="color:#00aaff; text-decoration:none;">
+        <a href="mailto:brainsamaj2004@gmail.com">
             brainsamaj2004@gmail.com
         </a>
     </p>
 
-    <p style="font-size:12px; opacity:0.6;">
-        © <?= date("Y") ?> Global Trade Hub. All rights reserved.
+    <p class="copyright">
+        © <?= date("Y") ?> Global Trade Hub. All Rights Reserved.
     </p>
 
-</footer>
+</div>
 
-</div> <!-- closes page-content -->
-</body>
+</footer></body>
 </html>

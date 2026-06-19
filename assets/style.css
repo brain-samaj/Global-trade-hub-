@@ -195,23 +195,6 @@ padding:0 10px 10px;
 }
 
 /* ======================
-FOOTER
-====================== */
-
-footer{
-background:#021633;
-color:white;
-text-align:center;
-padding:35px 20px;
-margin-top:40px;
-}
-
-footer a{
-color:#00e5ff;
-text-decoration:none;
-}
-
-/* ======================
 DASHBOARD
 ====================== */
 
@@ -265,6 +248,179 @@ MOBILE
 
 .hero p{
     font-size:18px;
+}
+
+}
+
+/* ==========================
+ FOOTER
+========================== */
+
+.gth-footer{
+background:linear-gradient(180deg,#021633,#000d26);
+padding:50px 20px;
+color:white;
+margin-top:50px;
+}
+
+.footer-stats{
+max-width:1200px;
+margin:auto;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:20px;
+}
+
+.footer-stat{
+background:rgba(255,255,255,.03);
+border:1px solid rgba(0,229,255,.15);
+border-radius:15px;
+padding:25px;
+text-align:center;
+backdrop-filter:blur(10px);
+}
+
+.footer-stat i{
+font-size:38px;
+color:#00e5ff;
+margin-bottom:15px;
+}
+
+.footer-stat h2{
+color:#00e5ff;
+font-size:34px;
+margin-bottom:5px;
+}
+
+.footer-stat p{
+color:#ddd;
+}
+
+.footer-contact{
+text-align:center;
+margin-top:40px;
+}
+
+.footer-contact p{
+margin:12px 0;
+}
+
+.footer-contact a{
+color:#00e5ff;
+text-decoration:none;
+}
+
+.copyright{
+opacity:.7;
+margin-top:25px;
+font-size:14px;
+}
+
+/* ==========================
+ABOUT US PAGE
+========================== */
+
+.about-container{
+max-width:1100px;
+margin:auto;
+padding:50px 20px;
+}
+
+.about-header{
+text-align:center;
+margin-bottom:50px;
+}
+
+.about-header h1{
+font-size:48px;
+color:#021633;
+margin-bottom:15px;
+}
+
+.about-header p{
+font-size:20px;
+color:#666;
+}
+
+.about-card{
+background:white;
+padding:30px;
+margin-bottom:25px;
+border-radius:15px;
+box-shadow:0 4px 15px rgba(0,0,0,.08);
+}
+
+.about-card h2{
+color:#021633;
+margin-bottom:15px;
+border-left:5px solid #00e5ff;
+padding-left:12px;
+}
+
+.about-card p{
+line-height:1.8;
+color:#444;
+}
+
+.about-list{
+list-style:none;
+padding:0;
+}
+
+.about-list li{
+padding:10px 0;
+border-bottom:1px solid #eee;
+}
+
+.about-list li:last-child{
+border-bottom:none;
+}
+
+.about-highlight{
+background:linear-gradient(
+135deg,
+#021633,
+#003366
+);
+color:white;
+text-align:center;
+padding:40px;
+border-radius:15px;
+margin-top:30px;
+}
+
+.about-highlight h2{
+color:#00e5ff;
+margin-bottom:15px;
+}
+
+.about-contact{
+text-align:center;
+margin-top:40px;
+}
+
+.about-contact a{
+color:#007bff;
+text-decoration:none;
+font-weight:bold;
+}
+
+.about-contact a:hover{
+color:#00e5ff;
+}
+
+@media(max-width:768px){
+
+.about-header h1{
+    font-size:36px;
+}
+
+.about-header p{
+    font-size:18px;
+}
+
+.about-card{
+    padding:20px;
 }
 
 }
