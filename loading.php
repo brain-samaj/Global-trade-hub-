@@ -6,27 +6,26 @@ session_start();
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Loading Global Trade Hub</title>
 
-    <!-- CSS -->
     <link rel="stylesheet" href="assets/style.css">
 
-    <!-- Font Awesome (optional) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
 <body>
 
-<!-- 🌍 LOADING SCENE -->
 <div class="hero-background">
 
-    <!-- 🌍 GLOBE -->
+    <!-- Globe -->
     <div class="globe-3d">
         <div class="globe-core"></div>
         <div class="globe-grid"></div>
     </div>
 
-    <!-- 🔗 TRADE ROUTES -->
+    <!-- Trade Routes -->
     <div class="trade-routes">
         <div class="route route1"></div>
         <div class="route route2"></div>
@@ -34,23 +33,26 @@ session_start();
         <div class="route route4"></div>
     </div>
 
-    <!-- 🚢 SHIPS -->
-    <img src="assets/images/ship.png" class="ship">
-    <img src="assets/images/ship.png" class="ship ship2">
+    <!-- Ships -->
+    <img src="assets/images/ship.png"
+         alt="Cargo Ship"
+         class="ship ship1">
+
+    <img src="assets/images/ship.png"
+         alt="Cargo Ship"
+         class="ship ship2">
 
 </div>
 
-<!-- ⏳ LOADING TEXT -->
 <div class="loading-text">
     <h2>Loading Global Trade Hub...</h2>
     <p>Connecting global buyers and sellers...</p>
 </div>
 
-<!-- 🔁 AUTO REDIRECT -->
 <script>
-    setTimeout(function () {
-        window.location.replace("index.php");
-    }, 6000);
+setTimeout(function() {
+    window.location.href = "index.php";
+}, 6000);
 </script>
 
 </body>
