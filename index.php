@@ -13,11 +13,8 @@ require "config/db.php";
 <?php include "includes/header.php"; ?>
 <?php include "includes/navbar.php"; ?>
 
-<!-- 🌍 HERO BACKGROUND -->
-<div class="hero-background">
-
-
-<section class="hero" style="text-align:center;">
+<!-- HERO SECTION (WHITE BACKGROUND RESTORED) -->
+<section class="hero" style="text-align:center; background:white; padding:80px 20px;">
 
     <h1>Global Trade Hub</h1>
     <p>Connecting Buyers and Sellers Globally</p>
@@ -25,13 +22,13 @@ require "config/db.php";
 </section>
 
 <!-- FEATURED PRODUCTS -->
-<section style="padding:20px;">
+<section style="padding:20px; background:white;">
 
     <h2 style="text-align:center;">🔥 Featured Products</h2>
 
     <div class="products" style="
         display:grid;
-        grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+        grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));
         gap:15px;
         margin-top:20px;
     ">
@@ -53,24 +50,26 @@ require "config/db.php";
             box-shadow:0 2px 8px rgba(0,0,0,0.1);
         ">
 
-<img src="<?= htmlspecialchars($p['image'] ?? '') ?>" 
-     style="width:100%; height:150px; object-fit:cover; border-radius:8px;">
-<h3><?= htmlspecialchars($p['name'] ?? 'No name') ?></h3>
+            <img src="<?= !empty($p['image']) ? htmlspecialchars($p['image']) : 'assets/images/default.png' ?>"
+                 style="width:100%; height:150px; object-fit:cover; border-radius:8px;">
 
-<p><?= htmlspecialchars($p['description'] ?? 'No description') ?></p>
+            <h3><?= htmlspecialchars($p['name'] ?? 'No name') ?></h3>
 
-<b>₦<?= number_format((int)($p['price'] ?? 0)) ?></b>
+            <p><?= htmlspecialchars($p['description'] ?? 'No description') ?></p>
 
-<br><br>
+            <b>₦<?= number_format((int)($p['price'] ?? 0)) ?></b>
 
-            <a href="add-to-cart.php?id=<?= $p['id'] ?>" style="
-                display:inline-block;
-                padding:8px;
-                background:#0d47a1;
-                color:white;
-                text-decoration:none;
-                border-radius:5px;
-            ">
+            <br><br>
+
+            <a href="add-to-cart.php?id=<?= $p['id'] ?>"
+               style="
+                    display:inline-block;
+                    padding:8px;
+                    background:#0d47a1;
+                    color:white;
+                    text-decoration:none;
+                    border-radius:5px;
+               ">
                 Add to Cart
             </a>
 
@@ -83,34 +82,27 @@ require "config/db.php";
 </section>
 
 <!-- WHY US -->
-<section style="padding:40px; text-align:center;">
-
+<section style="padding:40px; text-align:center; background:white;">
     <h2>Why Choose Global Trade Hub?</h2>
-
     <p>Verified sellers • Secure payments • Fast delivery</p>
-
 </section>
 
 <!-- CATEGORIES -->
-<section style="padding:20px; text-align:center;">
-
+<section style="padding:20px; text-align:center; background:white;">
     <h2>Browse Categories</h2>
 
     <a href="products.php?category=Clothing">Clothing</a> |
     <a href="products.php?category=Food">Food</a> |
     <a href="products.php?category=Electronics">Electronics</a>
-
 </section>
 
-<!-- FINAL CTA -->
-<section style="padding:50px; text-align:center;">
-
+<!-- CTA -->
+<section style="padding:50px; text-align:center; background:white;">
     <h2>Start Selling Today</h2>
 
     <a href="become-seller.php" class="btn">
         Become a Seller (click to register)
     </a>
-
 </section>
 
 <?php include "includes/footer.php"; ?>
