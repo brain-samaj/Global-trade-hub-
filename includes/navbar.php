@@ -77,6 +77,11 @@
     <i class="fas fa-info-circle"></i> About Us
 </a>
 
+<a href="privacy-policy.php">
+    <i class="fas fa-user-shield"></i>
+    Privacy Policy
+</a>
+
 <a href="contact.php">
     <i class="fas fa-envelope"></i> Contact Us
 </a>
