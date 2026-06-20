@@ -2,6 +2,9 @@
 session_start();
 require "../config/db.php";
 
+<?php include "includes/header.php"; ?><?php requ>
+<?php include "includes/navbar.php"; ?>
+
 /*
 |--------------------------------------------------------------------------
 | AUTH GUARD
