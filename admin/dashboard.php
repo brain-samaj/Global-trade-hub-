@@ -13,10 +13,6 @@ if (!isset($_SESSION["user_id"]) || ($_SESSION["role"] ?? null) !== "admin") {
     exit();
 }
 
-include "includes/header.php";
-include "includes/navbar.php";
-?>
-
 /*
 |--------------------------------------------------------------------------
 | SUMMARY (ORDERS + REVENUE)
