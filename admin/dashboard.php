@@ -2,9 +2,6 @@
 session_start();
 require "../config/db.php";
 
-<?php include "includes/header.php"; ?><?php requ>
-<?php include "includes/navbar.php"; ?>
-
 /*
 |--------------------------------------------------------------------------
 | AUTH GUARD
@@ -15,6 +12,10 @@ if (!isset($_SESSION["user_id"]) || ($_SESSION["role"] ?? null) !== "admin") {
     header("Location: ../login.php");
     exit();
 }
+
+include "includes/header.php";
+include "includes/navbar.php";
+?>
 
 /*
 |--------------------------------------------------------------------------
