@@ -1,64 +1,84 @@
-<footer class="gth-footer"><div class="footer-stats">
+<footer class="gth-footer">
 
-<script>
+    <div class="footer-stats">
 
-const themeBtn =
-document.getElementById("themeToggle");
+        <div class="footer-stat">
+            <i class="fas fa-users"></i>
+            <h2>10,000+</h2>
+            <p>Verified Sellers</p>
+        </div>
 
-if(localStorage.getItem("theme") === "dark"){
-    document.body.classList.add("dark-mode");
-}
+        <div class="footer-stat">
+            <i class="fas fa-box-open"></i>
+            <h2>50,000+</h2>
+            <p>Products Listed</p>
+        </div>
 
-if(themeBtn){
+        <div class="footer-stat">
+            <i class="fas fa-globe"></i>
+            <h2>150+</h2>
+            <p>Countries Connected</p>
+        </div>
 
-themeBtn.onclick = function(){
+        <div class="footer-stat">
+            <i class="fas fa-shield-alt"></i>
+            <h2>100%</h2>
+            <p>Secure Transactions</p>
+        </div>
 
-    document.body.classList.toggle("dark-mode");
-
-    if(
-        document.body.classList.contains("dark-mode")
-    ){
-        localStorage.setItem("theme","dark");
-    }else{
-        localStorage.setItem("theme","light");
-    }
-
-};
-
-}
-
-</script>
-
-    <div class="footer-stat">
-        <i class="fas fa-users"></i>
-        <h2>10,000+</h2>
-        <p>Verified Sellers</p>
     </div>
-
-    <div class="footer-stat">
-        <i class="fas fa-box-open"></i>
-        <h2>50,000+</h2>
-        <p>Products Listed</p>
-    </div>
-
-    <div class="footer-stat">
-        <i class="fas fa-globe"></i>
-        <h2>150+</h2>
-        <p>Countries Connected</p>
-    </div>
-
-    <div class="footer-stat">
-        <i class="fas fa-shield-alt"></i>
-        <h2>100%</h2>
-        <p>Secure Transactions</p>
-    </div>
-
 
     <p class="copyright">
         © <?= date("Y") ?> Global Trade Hub. All Rights Reserved.
     </p>
 
-</div>
+</footer>
 
-</footer></body>
+<script>
+
+const themeBtn = document.getElementById("themeToggle");
+
+/* Load saved theme */
+if(localStorage.getItem("theme") === "dark"){
+
+    document.body.classList.add("dark-mode");
+
+    if(themeBtn){
+        themeBtn.innerHTML = "☀️";
+    }
+
+}else{
+
+    if(themeBtn){
+        themeBtn.innerHTML = "🌙";
+    }
+
+}
+
+/* Toggle theme */
+if(themeBtn){
+
+    themeBtn.addEventListener("click", function(){
+
+        document.body.classList.toggle("dark-mode");
+
+        if(document.body.classList.contains("dark-mode")){
+
+            localStorage.setItem("theme","dark");
+            themeBtn.innerHTML = "☀️";
+
+        }else{
+
+            localStorage.setItem("theme","light");
+            themeBtn.innerHTML = "🌙";
+
+        }
+
+    });
+
+}
+
+</script>
+
+</body>
 </html>

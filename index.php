@@ -14,7 +14,7 @@ require "config/db.php";
 <?php include "includes/navbar.php"; ?>
 
 <!-- HERO SECTION (WHITE BACKGROUND RESTORED) -->
-<section class="hero" style="text-align:center; background:white; padding:80px 20px;">
+<div class="section-card">
 
     <h1>Global Trade Hub</h1>
     <p>Connecting Buyers and Sellers Globally</p>
@@ -22,8 +22,7 @@ require "config/db.php";
 </section>
 
 <!-- FEATURED PRODUCTS -->
-<section style="padding:20px; background:white;">
-
+<div class="section-card">
     <h2 style="text-align:center;">🔥 Featured Products</h2>
 
     <div class="products">
@@ -90,13 +89,13 @@ require "config/db.php";
 </section>
 
 <!-- WHY US -->
-<section style="padding:40px; text-align:center; background:white;">
+<div class="section-card; text-align:center;">
     <h2>Why Choose Global Trade Hub?</h2>
     <p>Verified sellers • Secure payments • Fast delivery</p>
 </section>
 
 <!-- CATEGORIES -->
-<section style="padding:20px; text-align:center; background:white;">
+<div class="section-card; text-align:center;">
     <h2>Browse Categories</h2>
 
     <a href="products.php?category=Clothing">Clothing</a> |
@@ -105,7 +104,7 @@ require "config/db.php";
 </section>
 
 <!-- CTA -->
-<section style="padding:50px; text-align:center; background:white;">
+<div class="section-card; text-align:center;">
     <h2>Start Selling Today</h2>
 
     <a href="become-seller.php" class="btn">

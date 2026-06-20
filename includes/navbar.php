@@ -8,6 +8,11 @@
     <div class="logo-globe">
         <span class="logo-text">GTH</span>
     </div>
+
+    <div class="logo-name">
+        <h3>Global Trade Hub</h3>
+        <small>Global Marketplace</small>
+    </div>
 </div>
 
 <!-- DESKTOP NAVIGATION -->

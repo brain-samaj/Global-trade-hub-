@@ -544,6 +544,16 @@ MOBILE
 }
 
 /* =====================
+SECTION CARDS
+===================== */
+
+.section-card{
+    background:var(--card);
+    color:var(--text);
+    padding:20px;
+}
+
+/* =====================
 DARK MODE SUPPORT
 ===================== */
 
@@ -563,4 +573,98 @@ body,
 .sidebar,
 .header{
     transition:.3s ease;
+}
+
+/* =====================
+GLOBAL DARK MODE FIXES
+===================== */
+
+/* All sections inherit page background */
+section{
+    background:var(--bg);
+    color:var(--text);
+}
+
+/* Forms */
+input,
+textarea,
+select{
+    background:var(--card);
+    color:var(--text);
+    border:1px solid rgba(128,128,128,.25);
+}
+
+input::placeholder,
+textarea::placeholder{
+    color:var(--text-light);
+}
+
+/* Tables */
+table{
+    background:var(--card);
+    color:var(--text);
+}
+
+th,
+td{
+    border-color:rgba(128,128,128,.2);
+}
+
+/* Links inside content */
+a{
+    transition:.3s;
+}
+
+/* About Us / Terms / Privacy cards */
+.about-card,
+.terms-card,
+.policy-card{
+    background:var(--card);
+    color:var(--text);
+    box-shadow:0 4px 15px var(--shadow);
+    border-radius:15px;
+    padding:20px;
+}
+
+/* Seller & Buyer forms */
+.form-box{
+    background:var(--card);
+    color:var(--text);
+    box-shadow:0 4px 15px var(--shadow);
+    border-radius:15px;
+    padding:20px;
+}
+
+
+section,
+div,
+main,
+article,
+.container,
+.content,
+.form-container{
+    color:var(--text);
+}
+
+input,
+textarea,
+select{
+    background:var(--card);
+    color:var(--text);
+    border:1px solid #ccc;
+}
+
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select{
+    border:1px solid #475569;
+}
+
+table{
+    background:var(--card);
+    color:var(--text);
+}
+
+h1,h2,h3,h4,h5,h6,p,span,label,a{
+    color:inherit;
 }
