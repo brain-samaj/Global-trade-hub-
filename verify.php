@@ -14,7 +14,12 @@ if (!isset($_GET['transaction_id'])) {
 
 $transaction_id = $_GET['transaction_id'];
 
-// VERIFY TRANSACTION WITH FLUTTERWAVE
+/*
+|--------------------------------------------------------------------------
+| VERIFY TRANSACTION
+|--------------------------------------------------------------------------
+*/
+
 $url = "https://api.flutterwave.com/v3/transactions/" . $transaction_id . "/verify";
 
 $ch = curl_init();
@@ -61,7 +66,12 @@ if (!$tx_ref) {
     die("Missing transaction reference");
 }
 
-// FIND ORDER
+/*
+|--------------------------------------------------------------------------
+| FIND ORDER
+|--------------------------------------------------------------------------
+*/
+
 $stmt = $pdo->prepare("
     SELECT *
     FROM orders
@@ -73,48 +83,17 @@ $stmt->execute([
     ":ref" => $tx_ref
 ]);
 
-// GET PRODUCT INFO
-$productStmt = $pdo->prepare("
-    SELECT p.*, u.id AS seller_user_id
-    FROM products p
-    JOIN users u ON p.seller_id = u.id
-    WHERE p.id = :pid
-");
-
-$productStmt->execute([
-    ":pid" => $order["product_id"]
-]);
-
-$product = $productStmt->fetch();
-
-if ($product) {
-
-    $notify = $pdo->prepare("
-        INSERT INTO notifications (
-            user_id,
-            message
-        )
-        VALUES (
-            :uid,
-            :msg
-        )
-    ");
-
-    $notify->execute([
-        ":uid" => $product["seller_user_id"],
-        ":msg" =>
-            "New order received. Order Ref: " .
-            $tx_ref
-    ]);
-}
-
 $order = $stmt->fetch();
 
 if (!$order) {
     die("Order not found");
 }
 
-// EXTRA SECURITY CHECKS
+/*
+|--------------------------------------------------------------------------
+| SECURITY CHECKS
+|--------------------------------------------------------------------------
+*/
 
 $paidAmount = (float)($data["amount"] ?? 0);
 $orderAmount = (float)$order["amount"];
@@ -130,33 +109,53 @@ if (
     die("Invalid currency");
 }
 
-// ALREADY PAID?
+/*
+|--------------------------------------------------------------------------
+| UPDATE ORDER TO PAID
+|--------------------------------------------------------------------------
+*/
+
 if ($order["status"] !== "paid") {
 
-    $stmt = $pdo->prepare("
+    $updateOrder = $pdo->prepare("
         UPDATE orders
         SET status = 'paid'
         WHERE reference = :ref
     ");
 
-$stmt = $pdo->prepare("
-INSERT INTO notifications
-(user_id,message)
-VALUES
-(:user_id,:message)
-");
-
-$stmt->execute([
-":user_id"=>$order["seller_id"],
-":message"=>"New order received from ".$order["customer_name"].". Phone: ".$order["phone"]
-]);
-
-    $stmt->execute([
+    $updateOrder->execute([
         ":ref" => $tx_ref
+    ]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | NOTIFY SELLER
+    |--------------------------------------------------------------------------
+    */
+
+    $notifySeller = $pdo->prepare("
+        INSERT INTO notifications
+        (user_id, message)
+        VALUES
+        (:user_id, :message)
+    ");
+
+    $notifySeller->execute([
+        ":user_id" => $order["seller_id"],
+        ":message" =>
+            "New order received from " .
+            $order["customer_name"] .
+            ". Phone: " .
+            $order["phone"]
     ]);
 }
 
-// REDIRECT TO RECEIPT
+/*
+|--------------------------------------------------------------------------
+| REDIRECT TO RECEIPT
+|--------------------------------------------------------------------------
+*/
+
 header(
     "Location: receipt.php?reference=" .
     urlencode($tx_ref)

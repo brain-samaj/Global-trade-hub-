@@ -28,10 +28,21 @@ $stmt = $pdo->prepare("
 ");
 
 $stmt->execute([$order_id]);
+
 $order = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$order) {
     die("Order not found");
+}
+
+/*
+|--------------------------------------------------------------------------
+| SECURITY CHECK
+|--------------------------------------------------------------------------
+*/
+
+if ($order["user_id"] != $_SESSION["user_id"]) {
+    die("Access denied");
 }
 
 if ($order["buyer_confirmed_delivery"]) {
@@ -44,65 +55,87 @@ if (!$order["seller_confirmed_shipped"]) {
 
 /*
 |--------------------------------------------------------------------------
-| MARK DELIVERED
+| START TRANSACTION
 |--------------------------------------------------------------------------
 */
 
-$stmt = $pdo->prepare("
-    UPDATE orders
-    SET
-        status = 'completed',
-        buyer_confirmed_delivery = TRUE,
-        delivered_at = NOW()
-    WHERE id = ?
-");
+$pdo->beginTransaction();
 
-$stmt->execute([$order_id]);
+try {
 
-/*
-|--------------------------------------------------------------------------
-| RELEASE MONEY TO SELLER WALLET
-|--------------------------------------------------------------------------
-*/
-
-if (!$order["wallet_released"]) {
-
-    $stmt = $pdo->prepare("
-        UPDATE sellers
-        SET wallet_balance = wallet_balance + ?
-        WHERE user_id = ?
-    ");
-
-    $stmt->execute([
-        $order["seller_earnings"],
-        $order["seller_id"]
-    ]);
+    /*
+    |--------------------------------------------------------------------------
+    | MARK ORDER COMPLETED
+    |--------------------------------------------------------------------------
+    */
 
     $stmt = $pdo->prepare("
         UPDATE orders
-        SET wallet_released = TRUE
+        SET
+            status = 'completed',
+            buyer_confirmed_delivery = TRUE,
+            delivered_at = NOW()
         WHERE id = ?
     ");
 
     $stmt->execute([$order_id]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | RELEASE MONEY TO SELLER
+    |--------------------------------------------------------------------------
+    */
+
+    if (!$order["wallet_released"]) {
+
+        $stmt = $pdo->prepare("
+            UPDATE sellers
+            SET
+                wallet_balance = wallet_balance + ?,
+                total_earned = total_earned + ?
+            WHERE user_id = ?
+        ");
+
+        $stmt->execute([
+            $order["seller_earnings"],
+            $order["seller_earnings"],
+            $order["seller_id"]
+        ]);
+
+        $stmt = $pdo->prepare("
+            UPDATE orders
+            SET wallet_released = TRUE
+            WHERE id = ?
+        ");
+
+        $stmt->execute([$order_id]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | NOTIFY SELLER
+    |--------------------------------------------------------------------------
+    */
+
+    $stmt = $pdo->prepare("
+        INSERT INTO notifications
+        (user_id, message)
+        VALUES (?, ?)
+    ");
+
+    $stmt->execute([
+        $order["seller_id"],
+        "Buyer has confirmed delivery. Funds have been released to your wallet."
+    ]);
+
+    $pdo->commit();
+
+} catch (Exception $e) {
+
+    $pdo->rollBack();
+
+    die($e->getMessage());
 }
-
-/*
-|--------------------------------------------------------------------------
-| NOTIFY SELLER
-|--------------------------------------------------------------------------
-*/
-
-$stmt = $pdo->prepare("
-    INSERT INTO notifications
-    (user_id, message)
-    VALUES (?, ?)
-");
-
-$stmt->execute([
-    $order["seller_id"],
-    "Buyer has confirmed delivery. Funds have been released to your wallet."
-]);
 
 header("Location: orders.php");
 exit();
