@@ -128,6 +128,31 @@ GLOBAL TRADE HUB • VERIFIED
     Download PDF Receipt
 </a>
 
+<br><br>
+
+<a href="buyer-dashboard.php"
+   style="
+   background:#0d6efd;
+   color:white;
+   padding:10px 15px;
+   text-decoration:none;
+   border-radius:5px;
+   ">
+   ← Back to Dashboard
+</a>
+
+<a href="orders.php"
+   style="
+   background:green;
+   color:white;
+   padding:10px 15px;
+   text-decoration:none;
+   border-radius:5px;
+   margin-left:10px;
+   ">
+   📦 My Orders
+</a>
+
 </div>
 
 </body>
