@@ -66,24 +66,49 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // SAVE ORDER (PENDING)
     // ============================
 
-    $stmt = $pdo->prepare("
-        INSERT INTO orders
-        (product_id, seller_id, customer_name, email, phone, amount, reference, status, platform_fee, seller_earnings)
-        VALUES
-        (:product_id, :seller_id, :customer_name, :email, :phone, :amount, :reference, 'pending', :platform_fee, :seller_earnings)
-    ");
+$stmt = $pdo->prepare("
+INSERT INTO orders
+(
+product_id,
+seller_id,
+user_id,
+customer_name,
+email,
+phone,
+amount,
+reference,
+status,
+platform_fee,
+seller_earnings
+)
+VALUES
+(
+:product_id,
+:seller_id,
+:user_id,
+:customer_name,
+:email,
+:phone,
+:amount,
+:reference,
+'pending',
+:platform_fee,
+:seller_earnings
+)
+");
 
-    $stmt->execute([
-        ":product_id" => $id,
-        ":seller_id" => $seller_id,
-        ":customer_name" => $name,
-        ":email" => $email,
-        ":phone" => $phone,
-        ":amount" => $amount,
-        ":reference" => $reference,
-        ":platform_fee" => $platform_fee,
-        ":seller_earnings" => $seller_earnings
-    ]);
+$stmt->execute([
+":product_id" => $id,
+":seller_id" => $seller_id,
+":user_id" => $_SESSION["user_id"],
+":customer_name" => $name,
+":email" => $email,
+":phone" => $phone,
+":amount" => $amount,
+":reference" => $reference,
+":platform_fee" => $platform_fee,
+":seller_earnings" => $seller_earnings
+]);
 
     // ============================
     // FLUTTERWAVE PAYMENT INIT

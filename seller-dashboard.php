@@ -156,6 +156,7 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <!-- ORDERS -->
 <div class="card">
+
     <h3>Recent Orders</h3>
 
     <?php if (empty($orders)): ?>
@@ -165,9 +166,76 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <?php foreach ($orders as $o): ?>
 
         <div class="card">
-            <p><b>Product:</b> <?= htmlspecialchars($o["product_name"]) ?></p>
-            <p><b>Amount:</b> ₦<?= number_format((float)$o["amount"]) ?></p>
-            <p><b>Status:</b> <?= htmlspecialchars($o["status"]) ?></p>
+
+            <p>
+                <b>Product:</b>
+                <?= htmlspecialchars($o["product_name"]) ?>
+            </p>
+
+            <p>
+                <b>Buyer:</b>
+                <?= htmlspecialchars($o["customer_name"] ?? "N/A") ?>
+            </p>
+
+            <p>
+                <b>Email:</b>
+                <?= htmlspecialchars($o["email"] ?? "N/A") ?>
+            </p>
+
+            <p>
+                <b>Phone:</b>
+                <?= htmlspecialchars($o["phone"] ?? "N/A") ?>
+            </p>
+
+            <p>
+                <b>Amount:</b>
+                ₦<?= number_format((float)$o["amount"]) ?>
+            </p>
+
+            <p>
+                <b>Seller Earnings:</b>
+                ₦<?= number_format((float)($o["seller_earnings"] ?? 0)) ?>
+            </p>
+
+            <p>
+                <b>Status:</b>
+                <?= htmlspecialchars($o["status"]) ?>
+            </p>
+
+            <?php if (
+                $o["status"] === "paid"
+                && !$o["seller_confirmed_shipped"]
+            ): ?>
+
+                <a
+                    href="seller-ship-order.php?id=<?= $o["id"] ?>"
+                    class="btn green"
+                >
+                    🚚 Mark As Shipped
+                </a>
+
+            <?php endif; ?>
+
+            <?php if (
+                $o["seller_confirmed_shipped"]
+            ): ?>
+
+                <p style="color:green;">
+                    ✅ Shipment confirmed
+                </p>
+
+            <?php endif; ?>
+
+            <?php if (
+                $o["buyer_confirmed_delivery"]
+            ): ?>
+
+                <p style="color:green;">
+                    ✅ Buyer confirmed delivery
+                </p>
+
+            <?php endif; ?>
+
         </div>
 
     <?php endforeach; ?>
