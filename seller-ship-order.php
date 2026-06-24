@@ -7,21 +7,60 @@ if (!isset($_SESSION["user_id"])) {
     exit();
 }
 
+if (!isset($_SESSION["role"]) || $_SESSION["role"] !== "seller") {
+    die("Access denied");
+}
+
+$seller_id = $_SESSION["user_id"];
+
 $order_id = (int)($_GET["id"] ?? 0);
 
+if (!$order_id) {
+    die("Invalid order");
+}
+
+/*
+|--------------------------------------------------------------------------
+| VERIFY ORDER BELONGS TO SELLER
+|--------------------------------------------------------------------------
+*/
+
 $stmt = $pdo->prepare("
-    SELECT *
-    FROM orders
-    WHERE id = ?
+    SELECT o.*
+    FROM orders o
+    JOIN products p ON o.product_id = p.id
+    WHERE o.id = ?
+    AND p.seller_id = ?
     LIMIT 1
 ");
-$stmt->execute([$order_id]);
 
-$order = $stmt->fetch();
+$stmt->execute([
+    $order_id,
+    $seller_id
+]);
+
+$order = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$order) {
-    die("Order not found");
+    die("Order not found or access denied");
 }
+
+/*
+|--------------------------------------------------------------------------
+| ALREADY SHIPPED?
+|--------------------------------------------------------------------------
+*/
+
+if ($order["seller_confirmed_shipped"]) {
+    header("Location: seller-dashboard.php");
+    exit();
+}
+
+/*
+|--------------------------------------------------------------------------
+| MARK AS SHIPPED
+|--------------------------------------------------------------------------
+*/
 
 $stmt = $pdo->prepare("
     UPDATE orders
@@ -31,7 +70,14 @@ $stmt = $pdo->prepare("
         status = 'shipped'
     WHERE id = ?
 ");
+
 $stmt->execute([$order_id]);
+
+/*
+|--------------------------------------------------------------------------
+| NOTIFY BUYER
+|--------------------------------------------------------------------------
+*/
 
 if (!empty($order["user_id"])) {
 
@@ -43,7 +89,7 @@ if (!empty($order["user_id"])) {
 
     $stmt->execute([
         $order["user_id"],
-        "Your order #{$order_id} has been shipped by the seller."
+        "Your order has been shipped by the seller. Please confirm delivery once received."
     ]);
 }
 
